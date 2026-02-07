@@ -16,35 +16,28 @@ The name combines *parrhesia* (Greek: fearless speech, speaking truth to power) 
 
 ## Screenshots
 
-### Home Dashboard
-<img src="screenshots/home.png" width="700">
-
-### Investigation Crew — Multi-Agent AI Pipeline
-<img src="screenshots/investigation.png" width="700">
-
-### Investigation Report
-<img src="screenshots/report.png" width="700">
-
-### Smart Archive — RAG Semantic Search
-<img src="screenshots/rag.png" width="700">
-
-### People Registry
-<img src="screenshots/people.png" width="700">
-
-### Flight Logs
-<img src="screenshots/flights.png" width="700">
-
-### Map — Network Graph
-<img src="screenshots/map.png" width="700">
-
-### Map — Relationship Map
-<img src="screenshots/map2.png" width="700">
-
-### Map — Influence Network (Schema)
-<img src="screenshots/map3.png" width="700">
-
-### Map — Influence Network (Graph)
-<img src="screenshots/map4.png" width="700">
+<table>
+<tr>
+<td align="center"><a href="screenshots/home.png"><img src="screenshots/home.png" width="220"><br><b>Home</b></a></td>
+<td align="center"><a href="screenshots/investigation.png"><img src="screenshots/investigation.png" width="220"><br><b>Investigation Crew</b></a></td>
+<td align="center"><a href="screenshots/report.png"><img src="screenshots/report.png" width="220"><br><b>Report</b></a></td>
+</tr>
+<tr>
+<td align="center"><a href="screenshots/rag.png"><img src="screenshots/rag.png" width="220"><br><b>Smart Archive (RAG)</b></a></td>
+<td align="center"><a href="screenshots/people.png"><img src="screenshots/people.png" width="220"><br><b>People Registry</b></a></td>
+<td align="center"><a href="screenshots/flights.png"><img src="screenshots/flights.png" width="220"><br><b>Flight Logs</b></a></td>
+</tr>
+<tr>
+<td align="center"><a href="screenshots/map.png"><img src="screenshots/map.png" width="220"><br><b>Network Graph</b></a></td>
+<td align="center"><a href="screenshots/map2.png"><img src="screenshots/map2.png" width="220"><br><b>Relationship Map</b></a></td>
+<td align="center"><a href="screenshots/map3.png"><img src="screenshots/map3.png" width="220"><br><b>Influence Schema</b></a></td>
+</tr>
+<tr>
+<td align="center"><a href="screenshots/map4.png"><img src="screenshots/map4.png" width="220"><br><b>Influence Graph</b></a></td>
+<td></td>
+<td></td>
+</tr>
+</table>
 
 ---
 
