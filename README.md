@@ -8,7 +8,7 @@
 
 Parrhesepstein is a full-stack Flask application that enables deep, systematic analysis of the Jeffrey Epstein document corpus released by the U.S. Department of Justice. It combines multi-agent AI investigation, semantic search (RAG), network graph analysis, and structured data persistence to surface connections, financial flows, and patterns across thousands of declassified documents.
 
-The name combines *parrhesia* (Greek: fearless speech, speaking truth to power) with *Epstein*.
+The name combines *parrhesia* (Greek: fearless speech, speaking truth to power) with *Epstein*. Name idea by **Boni Castellane**.
 
 **Author:** [The Pirate](https://x.com/Pinperepette)
 
