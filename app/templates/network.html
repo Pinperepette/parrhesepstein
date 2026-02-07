@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Graph - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --text: #e0e0e0;
+            --text-muted: #888;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i { font-size: 24px; color: var(--accent); }
+        .logo h1 { font-size: 20px; }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 14px;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .main {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-box {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .search-box label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: #000;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .stat-row .label { color: var(--text-muted); }
+        .stat-row .value { color: var(--accent); font-weight: 600; }
+
+        .top-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .top-list h3 {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--bg-input);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .top-item .name { font-size: 13px; }
+        .top-item .count {
+            background: var(--accent);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .graph-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #network {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .loading-overlay.hidden { display: none; }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--bg-input);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-overlay p {
+            margin-top: 15px;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        /* Node tooltip */
+        .vis-tooltip {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--accent) !important;
+            color: var(--text) !important;
+            padding: 10px !important;
+            border-radius: 8px !important;
+            font-size: 12px !important;
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-project-diagram"></i>
+            <h1>Network Graph</h1>
+        </div>
+    </header>
+
+    <main class="main">
+        <aside class="sidebar">
+            <div class="search-box">
+                <label>Search to generate the network</label>
+                <input type="text" id="queryInput" placeholder="e.g.: Clinton, Trump, island...">
+                <label style="margin-top: 15px;">
+                    <input type="checkbox" id="downloadFull"> Download PDFs (more accurate but slower)
+                </label>
+                <button class="btn btn-primary" onclick="generateNetwork()" id="generateBtn">
+                    <i class="fas fa-project-diagram"></i> Generate Network
+                </button>
+            </div>
+
+            <div class="stats" id="statsBox" style="display: none;">
+                <div class="stat-row">
+                    <span class="label">People found</span>
+                    <span class="value" id="nodeCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Connections</span>
+                    <span class="value" id="edgeCount">0</span>
+                </div>
+            </div>
+
+            <div class="top-list">
+                <h3><i class="fas fa-star"></i> Most connected</h3>
+                <div id="topList">
+                    <p style="color: var(--text-muted); font-size: 13px;">
+                        Generate a network to see the most connected people
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <div class="graph-container">
+            <div id="network"></div>
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-project-diagram"></i>
+                <h3>Connection Network</h3>
+                <p>Enter a query and click "Generate Network"<br>to visualize the relationships between people</p>
+            </div>
+            <div class="loading-overlay hidden" id="loadingOverlay">
+                <div class="spinner"></div>
+                <p id="loadingText">Generating network...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let network = null;
+
+        document.getElementById('queryInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') generateNetwork();
+        });
+
+        async function generateNetwork() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Enter a query');
+                return;
+            }
+
+            const downloadFull = document.getElementById('downloadFull').checked;
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingText').textContent = 'Starting network generation...';
+
+            try {
+                // Start background job
+                const response = await fetch('/api/network', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, download_full: downloadFull })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const jobId = data.job_id;
+                console.log('[Network] Job started:', jobId);
+
+                // Poll every 2 seconds
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(`/api/network/status/${jobId}`);
+                        const status = await statusRes.json();
+
+                        console.log('[Network Poll]', status.status, status.progress);
+                        document.getElementById('loadingText').textContent = status.progress || 'Processing...';
+
+                        if (status.status === 'completed') {
+                            clearInterval(pollInterval);
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                            renderNetwork(status.result.graph);
+                            renderStats(status.result.stats);
+                        } else if (status.status === 'error') {
+                            clearInterval(pollInterval);
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                            alert('Error: ' + status.error);
+                            document.getElementById('emptyState').style.display = 'block';
+                        }
+                    } catch (pollError) {
+                        console.error('[Network Poll] Error:', pollError);
+                    }
+                }, 2000);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }
+        }
+
+        function renderNetwork(graphData) {
+            const container = document.getElementById('network');
+
+            const nodes = new vis.DataSet(graphData.nodes);
+            const edges = new vis.DataSet(graphData.edges);
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    font: {
+                        color: '#e0e0e0',
+                        size: 12
+                    },
+                    borderWidth: 2
+                },
+                edges: {
+                    color: {
+                        color: 'rgba(0, 212, 255, 0.3)',
+                        highlight: '#00d4ff'
+                    },
+                    smooth: {
+                        type: 'continuous'
+                    }
+                },
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -3000,
+                        springLength: 150
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 100
+                }
+            };
+
+            network = new vis.Network(container, { nodes, edges }, options);
+
+            // Click on node -> go to investigate
+            network.on('doubleClick', function(params) {
+                if (params.nodes.length > 0) {
+                    const nodeName = params.nodes[0];
+                    window.location.href = `/investigate?name=${encodeURIComponent(nodeName)}`;
+                }
+            });
+        }
+
+        function renderStats(stats) {
+            document.getElementById('statsBox').style.display = 'block';
+            document.getElementById('nodeCount').textContent = stats.total_nodes;
+            document.getElementById('edgeCount').textContent = stats.total_edges;
+
+            const topList = document.getElementById('topList');
+            if (stats.most_connected && stats.most_connected.length > 0) {
+                topList.innerHTML = stats.most_connected.map(p => `
+                    <div class="top-item" onclick="window.location.href='/investigate?name=${encodeURIComponent(p.name)}'">
+                        <span class="name">${p.name}</span>
+                        <span class="count">${p.connections}</span>
+                    </div>
+                `).join('');
+            }
+        }
+    </script>
+</body>
+</html>

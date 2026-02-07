@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Synthesis - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-red: #ff4757;
+            --accent-green: #2ed573;
+            --accent-yellow: #ffa502;
+            --accent-purple: #a855f7;
+            --text: #e0e0e0;
+            --text-muted: #888;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i { font-size: 24px; color: var(--accent-green); }
+        .logo h1 { font-size: 20px; }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 14px;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .main {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-item {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .analysis-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .analysis-item.selected {
+            border-left-color: var(--accent-green);
+            background: rgba(46, 213, 115, 0.1);
+        }
+
+        .analysis-item .title {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .analysis-item .meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .analysis-item .type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-right: 5px;
+        }
+
+        .type-network { background: var(--accent-purple); color: white; }
+        .type-deep { background: var(--accent-yellow); color: black; }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-green), #1e9e5a);
+            color: #fff;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .content-area {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .synthesis-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .synthesis-container h1 { font-size: 28px; margin-bottom: 10px; color: var(--accent-green); }
+        .synthesis-container h2 {
+            font-size: 20px;
+            color: var(--accent);
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .synthesis-container h3 { font-size: 16px; margin: 20px 0 10px; }
+        .synthesis-container p { line-height: 1.7; margin-bottom: 15px; }
+        .synthesis-container ul, .synthesis-container ol { margin-left: 20px; margin-bottom: 15px; }
+        .synthesis-container li { margin-bottom: 8px; line-height: 1.6; }
+        .synthesis-container blockquote {
+            border-left: 3px solid var(--accent-green);
+            padding-left: 15px;
+            margin: 15px 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .synthesis-container strong { color: var(--accent-yellow); }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--bg-input);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .saved-syntheses {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .synthesis-item {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .synthesis-item:hover {
+            background: rgba(46, 213, 115, 0.1);
+        }
+
+        .selected-count {
+            background: var(--accent-green);
+            color: black;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-layer-group"></i>
+            <h1>Analysis Synthesis</h1>
+        </div>
+    </header>
+
+    <main class="main">
+        <aside class="sidebar">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="section-title" style="margin: 0;"><i class="fas fa-database"></i> Saved Analyses</h3>
+                <span class="selected-count" id="selectedCount">0 selected</span>
+            </div>
+
+            <div id="analysesList">
+                <p style="color: var(--text-muted);">Loading...</p>
+            </div>
+
+            <button class="btn btn-primary" id="generateBtn" disabled onclick="generateSynthesis()">
+                <i class="fas fa-magic"></i> Generate Unified Synthesis
+            </button>
+
+            <div class="saved-syntheses">
+                <h3 class="section-title"><i class="fas fa-file-alt"></i> Previous Syntheses</h3>
+                <div id="synthesesList">
+                    <p style="color: var(--text-muted);">No saved syntheses</p>
+</div>
+            </div>
+        </aside>
+
+        <div class="content-area">
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-layer-group"></i>
+                <h3>Analysis Synthesis</h3>
+                <p>Select analyses from the sidebar and click "Generate Synthesis"<br>to combine all data and draw conclusions</p>
+            </div>
+
+            <div id="synthesisContent" style="display: none;">
+                <div class="stats-bar" id="statsBar"></div>
+                <div class="synthesis-container" id="synthesisText"></div>
+            </div>
+
+            <div class="loading" id="loadingState" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating synthesis...</p>
+                <p style="color: var(--text-muted); font-size: 13px;">Analyzing all data with AI</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let selectedAnalyses = new Set();
+        let allAnalyses = { network: [], deep: [] };
+
+        // Carica tutte le analisi
+        async function loadAnalyses() {
+            try {
+                const response = await fetch('/api/sintesi/all-analyses');
+                const data = await response.json();
+
+                allAnalyses.network = data.network_analyses || [];
+                allAnalyses.deep = data.deep_analyses || [];
+
+                renderAnalysesList();
+            } catch (error) {
+                console.error('Error loading analyses:', error);
+                document.getElementById('analysesList').innerHTML =
+                    '<p style="color: var(--accent-red);">Loading error</p>';
+            }
+
+            // Carica anche le sintesi salvate
+            loadSavedSyntheses();
+        }
+
+        function renderAnalysesList() {
+            const container = document.getElementById('analysesList');
+            let html = '';
+
+            // Network analyses
+            if (allAnalyses.network.length > 0) {
+                html += '<p style="font-size: 11px; color: var(--accent-purple); margin: 10px 0 5px;">NETWORK ANALYSES</p>';
+                allAnalyses.network.forEach(a => {
+                    const isSelected = selectedAnalyses.has(a._id);
+                    html += `
+                        <div class="analysis-item ${isSelected ? 'selected' : ''}">
+                            <div onclick="toggleAnalysis('${a._id}')" style="flex: 1;">
+                                <div class="title">
+                                    <span class="type type-network">NETWORK</span>
+                                    ${(a.target_orgs || []).join(', ')}
+                                </div>
+                                <div class="meta">
+                                    ${new Date(a.date).toLocaleDateString('en-US')} ·
+                                    ${a.stats?.connections || 0} connections ·
+                                    ${a.stats?.intermediaries || 0} intermediaries
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteItem('analysis', '${a._id}')"
+                                    style="background: none; border: none; color: var(--accent-red); cursor: pointer; padding: 5px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            // Deep analyses
+            if (allAnalyses.deep.length > 0) {
+                html += '<p style="font-size: 11px; color: var(--accent-yellow); margin: 15px 0 5px;">DEEP ANALYSES</p>';
+                allAnalyses.deep.forEach(a => {
+                    const isSelected = selectedAnalyses.has(a._id);
+                    html += `
+                        <div class="analysis-item ${isSelected ? 'selected' : ''}">
+                            <div onclick="toggleAnalysis('${a._id}')" style="flex: 1;">
+                                <div class="title">
+                                    <span class="type type-deep">DEEP</span>
+                                    ${(a.doc_ids || []).slice(0, 2).join(', ')}${a.doc_ids?.length > 2 ? '...' : ''}
+                                </div>
+                                <div class="meta">
+                                    ${new Date(a.date).toLocaleDateString('en-US')} ·
+                                    ${a.doc_ids?.length || 0} documents
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteItem('analysis', '${a._id}')"
+                                    style="background: none; border: none; color: var(--accent-red); cursor: pointer; padding: 5px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            if (!html) {
+                html = '<p style="color: var(--text-muted);">No analyses found.<br>Run analyses from the Influence page first.</p>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function toggleAnalysis(id) {
+            if (selectedAnalyses.has(id)) {
+                selectedAnalyses.delete(id);
+            } else {
+                selectedAnalyses.add(id);
+            }
+            updateSelectedCount();
+            renderAnalysesList();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedAnalyses.size;
+            document.getElementById('selectedCount').textContent = `${count} selected`;
+            document.getElementById('generateBtn').disabled = count === 0;
+        }
+
+        let synthesisJobId = null;
+
+        async function generateSynthesis() {
+            if (selectedAnalyses.size === 0) return;
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('synthesisContent').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+
+            try {
+                // Start background job
+                const response = await fetch('/api/sintesi/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        analysis_ids: Array.from(selectedAnalyses)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                synthesisJobId = data.job_id;
+                console.log('[Synthesis] Job started:', synthesisJobId);
+
+                // Polling per stato
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(`/api/sintesi/generate/${synthesisJobId}`);
+                        const status = await statusRes.json();
+
+                        console.log('[Synthesis] Status:', status.status, status.progress);
+
+                        // Aggiorna messaggio loading
+                        document.querySelector('#loadingState p').textContent = status.progress;
+
+                        if (status.status === 'completed') {
+                            clearInterval(pollInterval);
+                            renderSynthesis(status.result);
+                            loadSavedSyntheses();
+                        } else if (status.status === 'error') {
+                            clearInterval(pollInterval);
+                            throw new Error(status.error);
+                        }
+                    } catch (pollError) {
+                        console.error('[Synthesis] Poll error:', pollError);
+                    }
+                }, 2000);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+            }
+        }
+
+        function renderSynthesis(data) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('synthesisContent').style.display = 'block';
+
+            // Stats
+            const stats = data.stats || {};
+            document.getElementById('statsBar').innerHTML = `
+                <div class="stat-box">
+                    <div class="value">${stats.persons || 0}</div>
+                    <div class="label">People</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${stats.organizations || 0}</div>
+                    <div class="label">Organizations</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${stats.connections || 0}</div>
+                    <div class="label">Connections</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${stats.documents || 0}</div>
+                    <div class="label">Documents</div>
+                </div>
+            `;
+
+            // Synthesis text
+            document.getElementById('synthesisText').innerHTML = marked.parse(data.synthesis);
+        }
+
+        async function loadSavedSyntheses() {
+            try {
+                const response = await fetch('/api/sintesi/all');
+                const data = await response.json();
+                const syntheses = data.syntheses || [];
+
+                const container = document.getElementById('synthesesList');
+
+                if (syntheses.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px;">No saved syntheses</p>';
+                    return;
+                }
+
+                container.innerHTML = syntheses.map(s => `
+                    <div class="synthesis-item" style="display: flex; align-items: center;">
+                        <div onclick="loadSynthesis('${s._id}')" style="flex: 1; cursor: pointer;">
+                            <div style="font-size: 13px; font-weight: 600;">
+                                Synthesis ${new Date(s.date).toLocaleDateString('en-US')}
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted);">
+                                ${s.persons?.length || 0} people · ${s.connections_count || 0} connections
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteItem('synthesis', '${s._id}')"
+                                style="background: none; border: none; color: var(--accent-red); cursor: pointer; padding: 5px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading syntheses:', error);
+            }
+        }
+
+        async function loadSynthesis(id) {
+            try {
+                const response = await fetch('/api/sintesi/all');
+                const data = await response.json();
+                const synthesis = data.syntheses.find(s => s._id === id);
+
+                if (synthesis) {
+                    renderSynthesis({
+                        synthesis: synthesis.synthesis,
+                        stats: {
+                            persons: synthesis.persons?.length || 0,
+                            organizations: synthesis.organizations?.length || 0,
+                            connections: synthesis.connections_count || 0,
+                            documents: synthesis.documents_count || 0
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading synthesis:', error);
+            }
+        }
+
+        // Funzione per eliminare elementi
+        async function deleteItem(type, id) {
+            const typeLabels = {
+                'analysis': 'this analysis',
+                'search': 'this search',
+                'synthesis': 'this synthesis'
+            };
+
+            if (!confirm(`Do you want to delete ${typeLabels[type] || 'this item'}?`)) return;
+
+            try {
+                let url;
+                if (type === 'analysis') {
+                    url = `/api/analyses/${id}`;
+                } else if (type === 'search') {
+                    url = `/api/searches/${id}`;
+                } else if (type === 'synthesis') {
+                    url = `/api/sintesi/delete/${id}`;
+                }
+
+                const response = await fetch(url, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.success) {
+                    // Remove from selection if it was selected
+                    selectedAnalyses.delete(id);
+                    updateSelectedCount();
+
+                    // Reload the lists
+                    loadAnalyses();
+                    if (type === 'synthesis') {
+                        loadSavedSyntheses();
+                    }
+                } else {
+                    alert('Error: ' + (data.error || 'Deletion failed'));
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Network error during deletion');
+            }
+        }
+
+        // Init
+        loadAnalyses();
+    </script>
+</body>
+</html>

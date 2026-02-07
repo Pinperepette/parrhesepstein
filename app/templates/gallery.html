@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Extractor - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 30px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .main {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 400px;
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 50px 14px 18px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .search-box button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            color: #000;
+            cursor: pointer;
+        }
+
+        .results-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .result-item:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .result-item.selected {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .result-item h4 {
+            font-size: 12px;
+            color: var(--text);
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        .result-item .meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+        }
+
+        .toolbar {
+            padding: 15px 25px;
+            background: var(--bg-card);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toolbar-info {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .toolbar-info strong {
+            color: var(--accent);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .gallery-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .image-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .image-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .image-card .info {
+            padding: 10px;
+        }
+
+        .image-card .info h4 {
+            font-size: 12px;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        .image-card .info .details {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal img {
+            max-width: 90vw;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        .modal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal .image-info {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .modal .download-btn {
+            margin-top: 15px;
+            padding: 12px 30px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--bg-input);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay p {
+            margin-top: 20px;
+            color: var(--text-muted);
+        }
+
+        .stats-bar {
+            background: var(--bg-input);
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+
+        .stats-bar .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-bar .stat i {
+            color: var(--accent);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select {
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-images"></i>
+            <div>
+                <h1>Image Extractor</h1>
+                <span>Extract images from PDF documents</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <aside class="sidebar">
+            <h2><i class="fas fa-search"></i> Search documents</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Name, place, date...">
+                <button onclick="doSearch()"><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="results-list" id="resultsList">
+                <div class="empty-state" style="padding: 40px 0;">
+                    <i class="fas fa-file-pdf"></i>
+                    <p style="text-align: center; font-size: 13px;">Search documents to extract images</p>
+                </div>
+            </div>
+            <div id="paginationArea" style="padding: 10px; display: none;">
+                <div style="text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                    <span id="resultsCount">0</span> documents loaded of <span id="totalCount">0</span>
+                </div>
+                <button class="btn btn-secondary" onclick="loadMore()" id="loadMoreBtn" style="width: 100%; margin-bottom: 8px;">
+                    <i class="fas fa-plus"></i> Load 20 more
+                </button>
+                <button class="btn btn-secondary" onclick="loadAll()" id="loadAllBtn" style="width: 100%; margin-bottom: 8px;">
+                    <i class="fas fa-download"></i> Load all
+                </button>
+                <button class="btn btn-primary" onclick="selectAll()" style="width: 100%;">
+                    <i class="fas fa-check-double"></i> Select all
+                </button>
+            </div>
+        </aside>
+
+        <section class="content">
+            <div class="toolbar">
+                <div class="toolbar-info">
+                    <strong id="selectedCount">0</strong> documents selected
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="selectAll()">
+                        <i class="fas fa-check-double"></i> All
+                    </button>
+                    <button class="btn btn-primary" onclick="extractImages()" id="extractBtn" disabled>
+                        <i class="fas fa-images"></i> Extract Images
+                    </button>
+                </div>
+            </div>
+
+            <div class="gallery-area">
+                <div id="statsBar" class="stats-bar" style="display: none;">
+                    <div class="stat">
+                        <i class="fas fa-file-pdf"></i>
+                        <span><strong id="statPdfs">0</strong> PDFs analyzed</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-images"></i>
+                        <span><strong id="statImages">0</strong> images found</span>
+                    </div>
+                </div>
+
+                <div class="filter-bar" id="filterBar" style="display: none;">
+                    <select id="filterSize" onchange="applyFilters()">
+                        <option value="all">All sizes</option>
+                        <option value="small">Small (&lt;100KB)</option>
+                        <option value="medium">Medium (100KB-500KB)</option>
+                        <option value="large">Large (&gt;500KB)</option>
+                    </select>
+                    <select id="filterFormat" onchange="applyFilters()">
+                        <option value="all">All formats</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="png">PNG</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="gallery-grid" id="galleryGrid">
+                    <div class="empty-state">
+                        <i class="fas fa-images"></i>
+                        <h3>No images</h3>
+                        <p>Search documents, select them and click "Extract Images"</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="imageModal">
+        <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        <img id="modalImage" src="" alt="">
+        <div class="image-info" id="modalInfo"></div>
+        <button class="download-btn" onclick="downloadImage()">
+            <i class="fas fa-download"></i> Download Image
+        </button>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Extraction in progress...</p>
+    </div>
+
+    <script>
+        let allResults = [];
+        let selectedDocs = new Map();
+        let allImages = [];
+        let filteredImages = [];
+        let currentImage = null;
+        let currentPage = 0;
+        let currentQuery = '';
+        let totalResults = 0;
+
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') doSearch();
+        });
+
+        async function doSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            currentQuery = query;
+            currentPage = 0;
+            allResults = [];
+
+            showLoading('Searching...');
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, page: 0 })
+                });
+
+                const data = await response.json();
+                allResults = data.results || [];
+                totalResults = data.total || 0;
+
+                document.getElementById('paginationArea').style.display = 'block';
+                document.getElementById('resultsCount').textContent = allResults.length;
+                document.getElementById('totalCount').textContent = totalResults;
+                document.getElementById('loadMoreBtn').disabled = allResults.length >= totalResults;
+
+                renderResults();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        async function loadMore() {
+            currentPage++;
+            showLoading(`Loading page ${currentPage + 1}...`);
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: currentQuery, page: currentPage })
+                });
+
+                const data = await response.json();
+                const newResults = data.results || [];
+                allResults = [...allResults, ...newResults];
+
+                document.getElementById('resultsCount').textContent = allResults.length;
+                const allLoaded = allResults.length >= totalResults || newResults.length === 0;
+                document.getElementById('loadMoreBtn').disabled = allLoaded;
+                document.getElementById('loadAllBtn').disabled = allLoaded;
+
+                renderResults();
+            } catch (error) {
+                alert('Error: ' + error.message);
+                currentPage--;
+            }
+
+            hideLoading();
+        }
+
+        async function loadAll() {
+            showLoading(`Loading all ${totalResults} documents...`);
+
+            try {
+                const maxPages = Math.ceil(totalResults / 20);
+
+                for (let page = currentPage + 1; page < maxPages && allResults.length < totalResults; page++) {
+                    const response = await fetch('/api/search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: currentQuery, page })
+                    });
+
+                    const data = await response.json();
+                    const newResults = data.results || [];
+                    if (newResults.length === 0) break;
+
+                    allResults = [...allResults, ...newResults];
+                    currentPage = page;
+
+                    document.getElementById('loadingText').textContent =
+                        `Loaded ${allResults.length} of ${totalResults}...`;
+                }
+
+                document.getElementById('resultsCount').textContent = allResults.length;
+                document.getElementById('loadMoreBtn').disabled = true;
+                document.getElementById('loadAllBtn').disabled = true;
+
+                renderResults();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        function renderResults() {
+            const container = document.getElementById('resultsList');
+
+            if (!allResults.length) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 40px 0;">
+                        <i class="fas fa-search"></i>
+                        <p style="text-align: center; font-size: 13px;">No results</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = allResults.map((doc, idx) => {
+                const isSelected = selectedDocs.has(doc.id || doc.title);
+                return `
+                    <div class="result-item ${isSelected ? 'selected' : ''}"
+                         onclick="toggleSelect(${idx})" data-idx="${idx}">
+                        <h4><i class="fas fa-file-pdf" style="color: #ff4757; margin-right: 5px;"></i>${doc.title}</h4>
+                        <div class="meta">
+                            ${doc.dataset || ''} | Pg ${doc.start_page}-${doc.end_page}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleSelect(idx) {
+            const doc = allResults[idx];
+            const key = doc.id || doc.title;
+
+            if (selectedDocs.has(key)) {
+                selectedDocs.delete(key);
+            } else {
+                selectedDocs.set(key, doc);
+            }
+
+            updateUI();
+        }
+
+        function selectAll() {
+            allResults.forEach(doc => {
+                selectedDocs.set(doc.id || doc.title, doc);
+            });
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('selectedCount').textContent = selectedDocs.size;
+            document.getElementById('extractBtn').disabled = selectedDocs.size === 0;
+
+            document.querySelectorAll('.result-item').forEach(item => {
+                const idx = parseInt(item.dataset.idx);
+                const doc = allResults[idx];
+                const key = doc.id || doc.title;
+                item.classList.toggle('selected', selectedDocs.has(key));
+            });
+        }
+
+        async function extractImages() {
+            if (selectedDocs.size === 0) return;
+
+            const docs = Array.from(selectedDocs.values());
+            const urls = docs.map(d => d.url).filter(Boolean);
+
+            if (!urls.length) {
+                alert('No valid URL found');
+                return;
+            }
+
+            showLoading(`Extracting images from ${urls.length} PDFs...`);
+
+            try {
+                // Long timeout to allow downloading many PDFs
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minuti
+
+                const response = await fetch('/api/extract-images-batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ urls }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    hideLoading();
+                    return;
+                }
+
+                // Collect all images
+                allImages = [];
+                data.results.forEach(result => {
+                    if (result.images) {
+                        result.images.forEach(img => {
+                            img.source_url = result.url;
+                            img.source_name = docs.find(d => d.url === result.url)?.title || 'Unknown';
+                            allImages.push(img);
+                        });
+                    }
+                });
+
+                document.getElementById('statPdfs').textContent = data.total_pdfs;
+                document.getElementById('statImages').textContent = data.total_images;
+                document.getElementById('statsBar').style.display = 'flex';
+                document.getElementById('filterBar').style.display = 'flex';
+
+                filteredImages = [...allImages];
+                renderGallery();
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        function renderGallery() {
+            const container = document.getElementById('galleryGrid');
+
+            if (!filteredImages.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-images"></i>
+                        <h3>No images found</h3>
+                        <p>The selected PDFs do not contain embedded images</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredImages.map((img, idx) => {
+                const sizeKB = Math.round(img.size_bytes / 1024);
+                return `
+                    <div class="image-card" onclick="openModal(${idx})">
+                        <img src="${img.data}" alt="Image ${idx + 1}" loading="lazy">
+                        <div class="info">
+                            <h4>Page ${img.page} - ${img.format.toUpperCase()}</h4>
+                            <div class="details">
+                                ${img.width}x${img.height} | ${sizeKB} KB<br>
+                                <small>${img.source_name.substring(0, 30)}...</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyFilters() {
+            const sizeFilter = document.getElementById('filterSize').value;
+            const formatFilter = document.getElementById('filterFormat').value;
+
+            filteredImages = allImages.filter(img => {
+                // Size filter
+                if (sizeFilter !== 'all') {
+                    const kb = img.size_bytes / 1024;
+                    if (sizeFilter === 'small' && kb >= 100) return false;
+                    if (sizeFilter === 'medium' && (kb < 100 || kb > 500)) return false;
+                    if (sizeFilter === 'large' && kb <= 500) return false;
+                }
+
+                // Format filter
+                if (formatFilter !== 'all') {
+                    const fmt = img.format.toLowerCase();
+                    if (formatFilter === 'jpeg' && !['jpeg', 'jpg'].includes(fmt)) return false;
+                    if (formatFilter === 'png' && fmt !== 'png') return false;
+                    if (formatFilter === 'other' && ['jpeg', 'jpg', 'png'].includes(fmt)) return false;
+                }
+
+                return true;
+            });
+
+            renderGallery();
+        }
+
+        function openModal(idx) {
+            currentImage = filteredImages[idx];
+            document.getElementById('modalImage').src = currentImage.data;
+            document.getElementById('modalInfo').innerHTML = `
+                <strong>${currentImage.source_name}</strong><br>
+                Page ${currentImage.page} | ${currentImage.width}x${currentImage.height} |
+                ${currentImage.format.toUpperCase()} | ${Math.round(currentImage.size_bytes / 1024)} KB
+            `;
+            document.getElementById('imageModal').classList.add('visible');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('visible');
+            currentImage = null;
+        }
+
+        function downloadImage() {
+            if (!currentImage) return;
+
+            const link = document.createElement('a');
+            link.href = currentImage.data;
+            link.download = `epstein_p${currentImage.page}_${currentImage.index}.${currentImage.format}`;
+            link.click();
+        }
+
+        // Close modal with ESC
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.add('visible');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('visible');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .idx-badge {
+            display: inline-block; font-size: 10px; padding: 2px 8px;
+            border-radius: 10px; font-weight: 600; margin-left: 8px;
+        }
+        .idx-badge.indexed { background: rgba(46, 213, 115, 0.15); color: #2ed573; }
+        .idx-badge.not-indexed { background: rgba(136, 136, 136, 0.15); color: #888; }
+        .btn-index-single {
+            background: none; border: 1px solid rgba(46, 213, 115, 0.3); color: #2ed573;
+            font-size: 10px; padding: 2px 8px; border-radius: 6px; cursor: pointer;
+            margin-left: 4px;
+        }
+        .btn-index-single:hover { background: rgba(46, 213, 115, 0.1); }
+        .semantic-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--text-muted); cursor: pointer; margin-left: 12px;
+        }
+        .semantic-toggle input { accent-color: #a55eea; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i { font-size: 28px; color: var(--accent); }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 30px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .search-bar {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .search-bar .input-group {
+            flex: 1;
+        }
+
+        .search-bar label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            height: calc(100vh - 220px);
+        }
+
+        @media (max-width: 1000px) {
+            .grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h2 i { color: var(--accent); }
+
+        .card-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Results List */
+        .result-item {
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .result-item:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .result-item.active {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .result-item h3 {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-item h3 i { color: var(--danger); }
+
+        .result-item .meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Text Viewer */
+        .text-viewer {
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .text-viewer .highlight {
+            background: var(--warning);
+            color: #000;
+            padding: 1px 3px;
+            border-radius: 2px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--bg-card);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Info Bar */
+        .info-bar {
+            padding: 10px 20px;
+            background: var(--bg-input);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-bar a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Search in text */
+        .search-in-text {
+            display: flex;
+            gap: 10px;
+            padding: 10px 15px;
+            background: var(--bg-input);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .search-in-text input {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--bg-dark);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .search-in-text input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .match-count {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-file-alt"></i>
+            <div>
+                <h1>PDF Text Viewer</h1>
+                <span>View raw text of documents</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-bar">
+            <div class="input-group">
+                <label>Search Epstein database</label>
+                <input type="text" id="searchQuery" placeholder="Name, place, term...">
+            </div>
+            <button class="btn btn-primary" onclick="doSearch()">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <label class="semantic-toggle">
+                <input type="checkbox" id="semanticToggle">
+                <i class="fas fa-brain" style="color: #a55eea;"></i> Semantic Search
+            </label>
+        </div>
+
+        <div class="grid">
+            <!-- Document List -->
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary doc-toggle active" id="toggleSearch" onclick="showDocPanel('search')" style="padding: 6px 12px; font-size: 12px;">
+                            <i class="fas fa-search"></i> Results
+                        </button>
+                        <button class="btn btn-secondary doc-toggle" id="toggleSaved" onclick="showDocPanel('saved')" style="padding: 6px 12px; font-size: 12px;">
+                            <i class="fas fa-hdd"></i> Saved
+                        </button>
+                        <button class="btn btn-secondary" id="btnIndexAllViewer" onclick="indexAllLocal()" style="padding: 6px 12px; font-size: 12px; border-color: rgba(46,213,115,0.3); color: #2ed573;">
+                            <i class="fas fa-database"></i> Index All
+                        </button>
+                    </div>
+                    <span id="docCount" style="font-size: 12px; color: var(--text-muted);">0 found</span>
+                </div>
+                <div class="card-body" id="docList">
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>Search to find documents</p>
+                    </div>
+                </div>
+                <div class="card-body" id="savedDocsList" style="display: none;">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+            </div>
+
+            <!-- Text Viewer -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-pdf"></i> <span id="currentDocTitle">No document</span></h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" onclick="reloadWithOCR('tesseract')" id="ocrBtn" disabled title="OCR with Tesseract (local)">
+                            <i class="fas fa-eye"></i> OCR
+                        </button>
+                        <button class="btn btn-secondary" onclick="reloadWithOCR('claude')" id="visionBtn" disabled title="OCR with Claude Vision (AI)">
+                            <i class="fas fa-robot"></i> Vision
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyText()" id="copyBtn" disabled>
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="search-in-text">
+                    <input type="text" id="searchInText" placeholder="Search in text..." oninput="highlightText()">
+                    <span class="match-count" id="matchCount"></span>
+                    <span id="extractMethod" style="font-size: 11px; color: var(--text-muted);"></span>
+                </div>
+                <div class="card-body" id="textViewer">
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Select a document to view its text</p>
+                    </div>
+                </div>
+                <div class="info-bar" id="infoBar" style="display: none;">
+                    <span id="charCount">0 characters</span>
+                    <a href="#" id="pdfLink" target="_blank"><i class="fas fa-external-link-alt"></i> Open original PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+        let currentText = '';
+        let currentUrl = '';
+
+        document.getElementById('searchQuery').addEventListener('keypress', e => {
+            if (e.key === 'Enter') doSearch();
+        });
+
+        async function doSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) return;
+
+            const isSemantic = document.getElementById('semanticToggle').checked;
+            document.getElementById('docList').innerHTML = '<div class="loading"><div class="spinner"></div>Searching...</div>';
+
+            try {
+                if (isSemantic) {
+                    // Semantic search in vector store
+                    const response = await fetch('/api/semantic-search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query, n_results: 20 })
+                    });
+                    const data = await response.json();
+                    // Adapt results to standard format
+                    currentResults = (data.results || []).map(r => ({
+                        id: r.metadata?.doc_id || r.title || '',
+                        title: r.metadata?.doc_id || r.title || 'N/A',
+                        url: r.url || '',
+                        snippets: [r.text?.substring(0, 300) || ''],
+                        dataset: 'RAG',
+                        start_page: 1, end_page: 1, file_size: 0,
+                        relevance: r.relevance
+                    }));
+                    renderDocList({ total: currentResults.length, results: currentResults });
+                } else {
+                    const response = await fetch('/api/search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query, page: 0 })
+                    });
+                    const data = await response.json();
+                    currentResults = data.results || [];
+                    renderDocList(data);
+                }
+            } catch (error) {
+                document.getElementById('docList').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        function renderDocList(data) {
+            const container = document.getElementById('docList');
+            document.getElementById('docCount').textContent = `${data.total} found`;
+
+            if (!data.results || data.results.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>No results</p></div>';
+                return;
+            }
+
+            container.innerHTML = data.results.map((doc, idx) => `
+                <div class="result-item" onclick="loadDocument(${idx})" data-idx="${idx}">
+                    <h3><i class="fas fa-file-pdf"></i> ${doc.title}</h3>
+                    <div class="meta">
+                        ${doc.dataset || ''} | Page ${doc.start_page}-${doc.end_page} | ${Math.round((doc.file_size || 0) / 1024)} KB
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        let currentDocIdx = null;
+
+        async function loadDocument(idx, useOcr = false, useClaudeVision = false) {
+            const doc = currentResults[idx];
+            if (!doc) return;
+
+            currentDocIdx = idx;
+
+            // Update active state
+            document.querySelectorAll('.result-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-idx="${idx}"]`).classList.add('active');
+
+            document.getElementById('currentDocTitle').textContent = doc.title;
+
+            const loadingMsg = useClaudeVision ? 'Analyzing with Claude Vision...' :
+                              (useOcr ? 'OCR in progress...' : 'Downloading PDF...');
+            document.getElementById('textViewer').innerHTML = `<div class="loading"><div class="spinner"></div>${loadingMsg}</div>`;
+
+            try {
+                const response = await fetch('/api/pdf-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: doc.url,
+                        use_ocr: useOcr,
+                        use_claude_vision: useClaudeVision
+                    })
+                });
+
+                const data = await response.json();
+                currentText = data.text;
+                currentUrl = doc.url;
+
+                document.getElementById('textViewer').innerHTML = `<div class="text-viewer">${escapeHtml(data.text)}</div>`;
+                document.getElementById('charCount').textContent = `${data.length.toLocaleString()} characters`;
+                document.getElementById('pdfLink').href = doc.url;
+                document.getElementById('infoBar').style.display = 'flex';
+                document.getElementById('copyBtn').disabled = false;
+                document.getElementById('ocrBtn').disabled = false;
+                document.getElementById('visionBtn').disabled = false;
+
+                // Show extraction method
+                const methodNames = {
+                    'pypdf2': '📄 Native text',
+                    'tesseract': '🔍 OCR Tesseract',
+                    'claude_vision': '🤖 Claude Vision'
+                };
+                document.getElementById('extractMethod').textContent = methodNames[data.method] || data.method;
+
+                // Highlight the search query
+                const query = document.getElementById('searchQuery').value.trim();
+                if (query) {
+                    document.getElementById('searchInText').value = query;
+                    highlightText();
+                }
+
+            } catch (error) {
+                document.getElementById('textViewer').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        function reloadWithOCR(method) {
+            if (currentDocIdx === null) return;
+
+            if (method === 'tesseract') {
+                loadDocument(currentDocIdx, true, false);
+            } else if (method === 'claude') {
+                loadDocument(currentDocIdx, false, true);
+            }
+        }
+
+        function highlightText() {
+            const searchTerm = document.getElementById('searchInText').value.trim();
+            const viewer = document.querySelector('.text-viewer');
+
+            if (!viewer || !currentText) return;
+
+            if (!searchTerm) {
+                viewer.innerHTML = escapeHtml(currentText);
+                document.getElementById('matchCount').textContent = '';
+                return;
+            }
+
+            const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
+            const matches = currentText.match(regex);
+            const count = matches ? matches.length : 0;
+
+            document.getElementById('matchCount').textContent = `${count} found`;
+
+            const highlighted = escapeHtml(currentText).replace(
+                new RegExp(`(${escapeRegex(escapeHtml(searchTerm))})`, 'gi'),
+                '<span class="highlight">$1</span>'
+            );
+
+            viewer.innerHTML = highlighted;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function copyText() {
+            if (currentText) {
+                navigator.clipboard.writeText(currentText).then(() => {
+                    alert('Text copied!');
+                });
+            }
+        }
+
+        // ==================== SAVED DOCUMENTS ====================
+
+        function showDocPanel(panel) {
+            const searchList = document.getElementById('docList');
+            const savedList = document.getElementById('savedDocsList');
+            const toggleSearch = document.getElementById('toggleSearch');
+            const toggleSaved = document.getElementById('toggleSaved');
+
+            if (panel === 'search') {
+                searchList.style.display = '';
+                savedList.style.display = 'none';
+                toggleSearch.classList.add('active');
+                toggleSaved.classList.remove('active');
+                toggleSearch.style.background = 'var(--accent)';
+                toggleSearch.style.color = '#000';
+                toggleSaved.style.background = '';
+                toggleSaved.style.color = '';
+            } else {
+                searchList.style.display = 'none';
+                savedList.style.display = '';
+                toggleSearch.classList.remove('active');
+                toggleSaved.classList.add('active');
+                toggleSaved.style.background = '#2ed573';
+                toggleSaved.style.color = '#000';
+                toggleSearch.style.background = '';
+                toggleSearch.style.color = '';
+                loadSavedDocuments();
+            }
+        }
+
+        async function loadSavedDocuments() {
+            const container = document.getElementById('savedDocsList');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+
+            try {
+                const response = await fetch('/api/documents');
+                const data = await response.json();
+
+                if (!data.documents || data.documents.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-hdd"></i><p>No saved documents</p></div>';
+                    document.getElementById('docCount').textContent = '0 saved';
+                    return;
+                }
+
+                document.getElementById('docCount').textContent = `${data.total} saved`;
+
+                container.innerHTML = data.documents.map(doc => `
+                    <div class="result-item" onclick="loadLocalDocument('${doc.doc_id}')" style="cursor: pointer;">
+                        <h3><i class="fas fa-file-pdf" style="color: ${doc.has_pdf ? 'var(--danger)' : 'var(--text-muted)'}"></i> ${doc.doc_id}</h3>
+                        <div class="meta">
+                            ${doc.has_text ? '<i class="fas fa-check-circle" style="color: var(--success);"></i> Text' : ''}
+                            ${doc.has_pdf ? '<i class="fas fa-file-pdf" style="color: var(--danger);"></i> PDF' : ''}
+                            | ${Math.round((doc.pdf_size || 0) / 1024)} KB
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        async function loadLocalDocument(docId) {
+            document.getElementById('currentDocTitle').textContent = docId;
+            document.getElementById('textViewer').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+
+            try {
+                const response = await fetch(`/api/documents/${docId}/text`);
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('textViewer').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${data.error}</p></div>`;
+                    return;
+                }
+
+                currentText = data.text;
+                currentUrl = `/api/documents/${docId}/pdf`;
+
+                document.getElementById('textViewer').innerHTML = `<div class="text-viewer">${escapeHtml(data.text)}</div>`;
+                document.getElementById('charCount').textContent = `${data.length.toLocaleString()} characters`;
+                document.getElementById('pdfLink').href = `/api/documents/${docId}/pdf`;
+                document.getElementById('infoBar').style.display = 'flex';
+                document.getElementById('copyBtn').disabled = false;
+                document.getElementById('extractMethod').textContent = 'Local document';
+
+                // Highlight active item
+                document.querySelectorAll('#savedDocsList .result-item').forEach(el => el.classList.remove('active'));
+                if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+            } catch (error) {
+                document.getElementById('textViewer').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        async function loadDocumentById(docId) {
+            // Search for the document by EFTA ID, then load it
+            document.getElementById('currentDocTitle').textContent = docId;
+            document.getElementById('textViewer').innerHTML = '<div class="loading"><div class="spinner"></div>Loading document...</div>';
+
+            // First try local documents
+            try {
+                const localResp = await fetch(`/api/documents/${docId}/text`);
+                const localData = await localResp.json();
+                if (!localData.error && localData.text) {
+                    currentText = localData.text;
+                    currentUrl = `/api/documents/${docId}/pdf`;
+                    document.getElementById('textViewer').innerHTML = `<div class="text-viewer">${escapeHtml(localData.text)}</div>`;
+                    document.getElementById('charCount').textContent = `${localData.length.toLocaleString()} characters`;
+                    document.getElementById('pdfLink').href = `/api/documents/${docId}/pdf`;
+                    document.getElementById('infoBar').style.display = 'flex';
+                    document.getElementById('copyBtn').disabled = false;
+                    document.getElementById('extractMethod').textContent = 'Local document';
+                    showDocPanel('saved');
+                    return;
+                }
+            } catch (e) { /* fallback to search */ }
+
+            // Fallback: search on justice.gov and load
+            try {
+                const searchResp = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: docId, page: 0 })
+                });
+                const searchData = await searchResp.json();
+                currentResults = searchData.results || [];
+                renderDocList(searchData);
+
+                // Auto-load the first result
+                if (currentResults.length > 0) {
+                    document.getElementById('searchQuery').value = docId;
+                    loadDocument(0);
+                } else {
+                    document.getElementById('textViewer').innerHTML = `<div class="empty-state"><i class="fas fa-search"></i><p>Document ${docId} not found</p></div>`;
+                }
+            } catch (error) {
+                document.getElementById('textViewer').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error loading ${docId}: ${error.message}</p></div>`;
+            }
+        }
+        // Index all local documents
+
+        async function indexAllLocal() {
+            const btn = document.getElementById('btnIndexAllViewer');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Indexing...';
+            try {
+                const res = await fetch('/api/vectordb/index-all-local', {method: 'POST'});
+                const data = await res.json();
+                const jobId = data.job_id;
+                const poll = setInterval(async () => {
+                    const sr = await fetch(`/api/vectordb/index-all-local/${jobId}`);
+                    const st = await sr.json();
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${st.indexed || 0}/${st.total || '?'}`;
+                    if (st.status === 'completed' || st.status === 'error') {
+                        clearInterval(poll);
+                        btn.disabled = false;
+                        btn.innerHTML = `<i class="fas fa-database"></i> Indexed: ${st.indexed}`;
+                        setTimeout(() => { btn.innerHTML = '<i class="fas fa-database"></i> Index All'; }, 3000);
+                    }
+                }, 1000);
+            } catch(e) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-database"></i> Index All';
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // Auto-load document from URL parameter: /viewer?doc=EFTA01234567
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const docParam = params.get('doc');
+            if (docParam) {
+                loadDocumentById(docParam);
+            }
+        });
+    </script>
+</body>
+</html>

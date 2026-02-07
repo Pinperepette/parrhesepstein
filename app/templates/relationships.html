@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Map - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-gold: #ffd700;
+            --accent-red: #ff6b6b;
+            --accent-green: #4ade80;
+            --accent-orange: #fb923c;
+            --text: #e0e0e0;
+            --text-muted: #888;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i { font-size: 24px; color: var(--accent-purple); }
+        .logo h1 { font-size: 20px; }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 14px;
+        }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a.active { color: var(--accent-purple); }
+
+        .main {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            width: 350px;
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section h3 {
+            font-size: 13px;
+            color: var(--accent-purple);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .legend-item.flight { border-color: #ff9500; }
+        .legend-item.email { border-color: #00bfff; }
+        .legend-item.document { border-color: #32cd32; }
+        .legend-item.introduction { border-color: #ffd700; }
+
+        .legend-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .legend-node {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-purple), #c084fc);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .filter-group label:hover {
+            background: var(--bg-input);
+        }
+
+        .filter-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-purple);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-box {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .top-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--bg-input);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            background: rgba(168, 85, 247, 0.2);
+            transform: translateX(5px);
+        }
+
+        .top-item .name { font-size: 13px; }
+        .top-item .badges {
+            display: flex;
+            gap: 4px;
+        }
+        .top-item .badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .graph-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #network {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .loading-overlay.hidden { display: none; }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--bg-input);
+            border-top-color: var(--accent-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-overlay p {
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .progress-steps {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .progress-step.active {
+            color: var(--accent);
+        }
+
+        .progress-step.done {
+            color: var(--accent-green);
+        }
+
+        .progress-step i {
+            width: 20px;
+        }
+
+        /* Node info panel */
+        .node-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--accent-purple);
+            display: none;
+            z-index: 50;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .node-info.visible {
+            display: block;
+        }
+
+        .node-info h4 {
+            color: var(--accent-purple);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .node-info .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .node-info .relation-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .relation-item {
+            padding: 10px;
+            background: var(--bg-input);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid;
+        }
+
+        .relation-item.flight { border-color: #ff9500; background: rgba(255, 149, 0, 0.1); }
+        .relation-item.email { border-color: #00bfff; background: rgba(0, 191, 255, 0.1); }
+        .relation-item.document { border-color: #32cd32; background: rgba(50, 205, 50, 0.1); }
+        .relation-item.introduction { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); }
+
+        .relation-item .type {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .relation-item .name {
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .relation-item .detail {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-project-diagram"></i>
+            <h1>Complete Relationship Map</h1>
+        </div>
+    </header>
+
+    <main class="main">
+        <aside class="sidebar">
+            <div class="section">
+                <h3><i class="fas fa-palette"></i> Relationship Legend</h3>
+                <div class="legend">
+                    <div class="legend-item flight">
+                        <i class="fas fa-plane" style="color: #ff9500; font-size: 16px;"></i>
+                        <div>
+                            <span style="font-weight: 600;">Flights together</span>
+                            <div style="font-size: 10px; color: var(--text-muted);">Thick solid line</div>
+                        </div>
+                    </div>
+                    <div class="legend-item email">
+                        <i class="fas fa-envelope" style="color: #00bfff; font-size: 16px;"></i>
+                        <div>
+                            <span style="font-weight: 600;">Email/Communications</span>
+                            <div style="font-size: 10px; color: var(--text-muted);">Dashed line</div>
+                        </div>
+                    </div>
+                    <div class="legend-item document">
+                        <i class="fas fa-file-alt" style="color: #32cd32; font-size: 16px;"></i>
+                        <div>
+                            <span style="font-weight: 600;">Same document</span>
+                            <div style="font-size: 10px; color: var(--text-muted);">Thin dotted line</div>
+                        </div>
+                    </div>
+                    <div class="legend-item introduction">
+                        <i class="fas fa-handshake" style="color: #ffd700; font-size: 16px;"></i>
+                        <div>
+                            <span style="font-weight: 600;">Introductions</span>
+                            <div style="font-size: 10px; color: var(--text-muted);">Thick golden line</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">NODE SIZE = # CONNECTIONS</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">BORDER COLOR = PREDOMINANT TYPE</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3><i class="fas fa-filter"></i> Filters</h3>
+                <div class="filter-group">
+                    <label>
+                        <input type="checkbox" id="filterFlights" checked>
+                        <i class="fas fa-plane" style="color: var(--accent-orange);"></i>
+                        Show flights
+                    </label>
+                    <label>
+                        <input type="checkbox" id="filterEmails" checked>
+                        <i class="fas fa-envelope" style="color: var(--accent);"></i>
+                        Show emails
+                    </label>
+                    <label>
+                        <input type="checkbox" id="filterDocuments" checked>
+                        <i class="fas fa-file-alt" style="color: var(--accent-green);"></i>
+                        Show documents
+                    </label>
+                    <label>
+                        <input type="checkbox" id="filterIntroductions" checked>
+                        <i class="fas fa-handshake" style="color: var(--accent-gold);"></i>
+                        Show introductions
+                    </label>
+                </div>
+                <!-- Load from saved investigation -->
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 5px;">
+                        <i class="fas fa-folder-open"></i> From saved investigation:
+                    </label>
+                    <select id="savedInvestigation" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); font-size: 13px;">
+                        <option value="">-- Select --</option>
+                    </select>
+                </div>
+
+                <div style="text-align: center; color: var(--text-muted); font-size: 11px; margin: 10px 0;">or</div>
+
+                <div class="search-box">
+                    <input type="text" id="searchPerson" placeholder="Person name to map...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <button class="btn btn-primary" onclick="buildRelationshipMap()" id="buildBtn">
+                    <i class="fas fa-project-diagram"></i> Build Map
+                </button>
+                <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px; text-align: center;">
+                    Select an investigation or enter a name
+                </p>
+            </div>
+
+            <div class="section" id="statsSection" style="display: none;">
+                <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="value" id="totalNodes">0</div>
+                        <div class="label">People</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="totalEdges">0</div>
+                        <div class="label">Relationships</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="totalFlights">0</div>
+                        <div class="label">Flights</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="totalEmails">0</div>
+                        <div class="label">Email</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="topSection" style="display: none;">
+                <h3><i class="fas fa-crown"></i> Most Connected</h3>
+                <div class="top-list" id="topList"></div>
+            </div>
+        </aside>
+
+        <div class="graph-container">
+            <div id="network"></div>
+
+            <div class="loading-overlay hidden" id="loadingOverlay">
+                <div class="spinner"></div>
+                <p id="loadingText">Building relationship map...</p>
+                <div class="progress-steps">
+                    <div class="progress-step" id="step-flights">
+                        <i class="fas fa-circle"></i> Loading flights
+                    </div>
+                    <div class="progress-step" id="step-emails">
+                        <i class="fas fa-circle"></i> Analyzing emails
+                    </div>
+                    <div class="progress-step" id="step-docs">
+                        <i class="fas fa-circle"></i> Scanning documents
+                    </div>
+                    <div class="progress-step" id="step-build">
+                        <i class="fas fa-circle"></i> Building graph
+                    </div>
+                </div>
+            </div>
+
+            <div class="node-info" id="nodeInfo">
+                <h4>
+                    <span id="nodeInfoName">Person Name</span>
+                    <button class="close-btn" onclick="closeNodeInfo()"><i class="fas fa-times"></i></button>
+                </h4>
+                <div class="relation-list" id="nodeRelations"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let network = null;
+        let allNodes = [];
+        let allEdges = [];
+        let relationshipData = null;
+
+        // Update loading step
+        function setStepStatus(stepId, status) {
+            const step = document.getElementById(stepId);
+            step.classList.remove('active', 'done');
+            if (status === 'active') {
+                step.classList.add('active');
+                step.querySelector('i').className = 'fas fa-spinner fa-spin';
+            } else if (status === 'done') {
+                step.classList.add('done');
+                step.querySelector('i').className = 'fas fa-check';
+            } else {
+                step.querySelector('i').className = 'fas fa-circle';
+            }
+        }
+
+        // Build relationship map
+        async function buildRelationshipMap() {
+            const btn = document.getElementById('buildBtn');
+            const searchQuery = document.getElementById('searchPerson').value.trim();
+
+            btn.disabled = true;
+
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            if (searchQuery) {
+                document.getElementById('loadingText').textContent = `Searching relationships for "${searchQuery}"...`;
+            } else {
+                document.getElementById('loadingText').textContent = 'Starting map construction...';
+            }
+
+            // Reset steps
+            ['step-flights', 'step-emails', 'step-docs', 'step-build'].forEach(s => setStepStatus(s, ''));
+
+            try {
+                // Step 1: Load flights (or search specific flights)
+                setStepStatus('step-flights', 'active');
+                document.getElementById('loadingText').textContent = searchQuery
+                    ? `Searching flights for "${searchQuery}"...`
+                    : 'Loading flight data...';
+                const flightsResponse = await fetch('/api/flights');
+                const flightsData = await flightsResponse.json();
+                setStepStatus('step-flights', 'done');
+
+                // Step 2: Analyze emails
+                setStepStatus('step-emails', 'active');
+                document.getElementById('loadingText').textContent = searchQuery
+                    ? `Searching emails for "${searchQuery}"...`
+                    : 'Analyzing email communications...';
+                const emailsUrl = searchQuery
+                    ? `/api/relationships/emails?person=${encodeURIComponent(searchQuery)}`
+                    : '/api/relationships/emails';
+                const emailsResponse = await fetch(emailsUrl);
+                const emailsData = await emailsResponse.json();
+                setStepStatus('step-emails', 'done');
+
+                // Step 3: Search documents
+                setStepStatus('step-docs', 'active');
+                document.getElementById('loadingText').textContent = searchQuery
+                    ? `Searching documents for "${searchQuery}"...`
+                    : 'Scanning documents...';
+                const docsUrl = searchQuery
+                    ? `/api/relationships/documents?person=${encodeURIComponent(searchQuery)}`
+                    : '/api/relationships/documents';
+                const docsResponse = await fetch(docsUrl);
+                const docsData = await docsResponse.json();
+                setStepStatus('step-docs', 'done');
+
+                // Step 4: Build graph
+                setStepStatus('step-build', 'active');
+                document.getElementById('loadingText').textContent = 'Building relationship graph...';
+
+                relationshipData = {
+                    flights: flightsData,
+                    emails: emailsData,
+                    documents: docsData
+                };
+
+                buildGraph(relationshipData, searchQuery);
+                setStepStatus('step-build', 'done');
+
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('statsSection').style.display = 'block';
+                document.getElementById('topSection').style.display = 'block';
+
+                // Show message if searching for a specific person
+                if (searchQuery && allNodes.length === 0) {
+                    // Show overlay with message
+                    const container = document.getElementById('network');
+                    container.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+                            <i class="fas fa-search" style="font-size: 64px; opacity: 0.3; margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--accent-red);">No results for "${searchQuery}"</h3>
+                            <p style="max-width: 400px; text-align: center; margin-top: 15px;">
+                                "${searchQuery}" was not found in the Epstein Files documents on Justice.gov
+                            </p>
+                            <p style="font-size: 12px; margin-top: 10px;">
+                                Try a different name or check the spelling
+                            </p>
+                        </div>
+                    `;
+                } else if (searchQuery) {
+                    // Highlight the searched person
+                    const foundNode = allNodes.find(n =>
+                        n.id.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                    if (foundNode) {
+                        setTimeout(() => focusNode(foundNode.id), 500);
+                    } else if (allNodes.length > 0) {
+                        // Found relationships but not exactly that name
+                        console.log(`Found ${allNodes.length} people connected to "${searchQuery}"`);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loadingText').textContent = 'Error: ' + error.message;
+            }
+
+            btn.disabled = false;
+        }
+
+        // Build the graph
+        function buildGraph(data, searchQuery = '') {
+            const nodes = new Map();
+            const edges = [];
+            const edgeKeys = new Set();
+
+            // More vivid and distinguishable colors
+            const colors = {
+                flight: '#ff9500',      // bright orange
+                email: '#00bfff',       // sky blue
+                document: '#32cd32',    // lime green
+                introduction: '#ffd700' // gold
+            };
+
+            // Line styles by type
+            const edgeStyles = {
+                flight: { dashes: false, width: 3 },
+                email: { dashes: [5, 5], width: 2 },
+                document: { dashes: [2, 2], width: 1 },
+                introduction: { dashes: false, width: 4 }
+            };
+
+            // Process flights (filter by person if searched)
+            if (data.flights && data.flights.flights) {
+                const flightsByDate = {};
+                const searchLower = searchQuery ? searchQuery.toLowerCase() : '';
+
+                data.flights.flights.forEach(flight => {
+                    const passengers = parsePassengers(flight.passengers || '');
+
+                    // If searching for a person, include only flights where they appear
+                    if (searchQuery) {
+                        const hasTarget = passengers.some(p =>
+                            p.toLowerCase().includes(searchLower) ||
+                            searchLower.includes(p.toLowerCase())
+                        );
+                        if (!hasTarget) return;  // Skip this flight
+                    }
+
+                    if (passengers.length > 1) {
+                        const key = `${flight.date}-${flight.from}-${flight.to}`;
+                        if (!flightsByDate[key]) flightsByDate[key] = new Set();
+                        passengers.forEach(p => flightsByDate[key].add(p));
+                    }
+
+                    // Add nodes
+                    passengers.forEach(p => {
+                        if (!nodes.has(p)) {
+                            nodes.set(p, {
+                                id: p,
+                                label: p,
+                                flights: 0,
+                                emails: 0,
+                                documents: 0,
+                                introductions: 0,
+                                relations: []
+                            });
+                        }
+                        nodes.get(p).flights++;
+                    });
+                });
+
+                // Create edges for flights together
+                Object.entries(flightsByDate).forEach(([key, passengers]) => {
+                    const passengerList = Array.from(passengers);
+                    for (let i = 0; i < passengerList.length; i++) {
+                        for (let j = i + 1; j < passengerList.length; j++) {
+                            const p1 = passengerList[i];
+                            const p2 = passengerList[j];
+                            const edgeKey = [p1, p2].sort().join('|') + '|flight';
+
+                            if (!edgeKeys.has(edgeKey)) {
+                                edgeKeys.add(edgeKey);
+                                edges.push({
+                                    from: p1,
+                                    to: p2,
+                                    type: 'flight',
+                                    color: colors.flight,
+                                    title: `Flight together: ${key}`,
+                                    detail: key
+                                });
+
+                                // Add to node relationships
+                                if (nodes.has(p1)) {
+                                    nodes.get(p1).relations.push({ type: 'flight', person: p2, detail: key });
+                                }
+                                if (nodes.has(p2)) {
+                                    nodes.get(p2).relations.push({ type: 'flight', person: p1, detail: key });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Process emails
+            if (data.emails && data.emails.communications) {
+                data.emails.communications.forEach(comm => {
+                    const from = comm.from;
+                    const to = comm.to;
+
+                    if (from && to && from !== to) {
+                        // Add nodes
+                        [from, to].forEach(p => {
+                            if (!nodes.has(p)) {
+                                nodes.set(p, {
+                                    id: p,
+                                    label: p,
+                                    flights: 0,
+                                    emails: 0,
+                                    documents: 0,
+                                    introductions: 0,
+                                    relations: []
+                                });
+                            }
+                            nodes.get(p).emails++;
+                        });
+
+                        const edgeKey = [from, to].sort().join('|') + '|email';
+                        if (!edgeKeys.has(edgeKey)) {
+                            edgeKeys.add(edgeKey);
+                            edges.push({
+                                from: from,
+                                to: to,
+                                type: 'email',
+                                color: colors.email,
+                                title: `Email: ${comm.subject || 'N/A'}`,
+                                detail: comm.subject || comm.doc_id
+                            });
+
+                            nodes.get(from).relations.push({ type: 'email', person: to, detail: comm.subject || comm.doc_id });
+                            nodes.get(to).relations.push({ type: 'email', person: from, detail: comm.subject || comm.doc_id });
+                        }
+                    }
+                });
+            }
+
+            // Process documents (co-occurrences)
+            if (data.documents && data.documents.cooccurrences) {
+                data.documents.cooccurrences.forEach(cooc => {
+                    const people = cooc.people || [];
+                    const docId = cooc.doc_id;
+
+                    people.forEach(p => {
+                        if (!nodes.has(p)) {
+                            nodes.set(p, {
+                                id: p,
+                                label: p,
+                                flights: 0,
+                                emails: 0,
+                                documents: 0,
+                                introductions: 0,
+                                relations: []
+                            });
+                        }
+                        nodes.get(p).documents++;
+                    });
+
+                    // Create edges between people in the same document
+                    for (let i = 0; i < people.length; i++) {
+                        for (let j = i + 1; j < people.length; j++) {
+                            const edgeKey = [people[i], people[j]].sort().join('|') + '|document';
+                            if (!edgeKeys.has(edgeKey)) {
+                                edgeKeys.add(edgeKey);
+                                edges.push({
+                                    from: people[i],
+                                    to: people[j],
+                                    type: 'document',
+                                    color: colors.document,
+                                    title: `Document: ${docId}`,
+                                    detail: docId
+                                });
+
+                                nodes.get(people[i]).relations.push({ type: 'document', person: people[j], detail: docId });
+                                nodes.get(people[j]).relations.push({ type: 'document', person: people[i], detail: docId });
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Process introductions
+            if (data.documents && data.documents.introductions) {
+                data.documents.introductions.forEach(intro => {
+                    const introducer = intro.introducer;
+                    const introduced = intro.introduced;
+                    const to = intro.to;
+
+                    [introducer, introduced, to].filter(Boolean).forEach(p => {
+                        if (!nodes.has(p)) {
+                            nodes.set(p, {
+                                id: p,
+                                label: p,
+                                flights: 0,
+                                emails: 0,
+                                documents: 0,
+                                introductions: 0,
+                                relations: []
+                            });
+                        }
+                        nodes.get(p).introductions++;
+                    });
+
+                    if (introducer && introduced) {
+                        const edgeKey = [introducer, introduced].sort().join('|') + '|introduction';
+                        if (!edgeKeys.has(edgeKey)) {
+                            edgeKeys.add(edgeKey);
+                            edges.push({
+                                from: introducer,
+                                to: introduced,
+                                type: 'introduction',
+                                color: colors.introduction,
+                                title: `Introduction: ${intro.context || 'N/A'}`,
+                                detail: intro.context
+                            });
+
+                            nodes.get(introducer).relations.push({ type: 'introduction', person: introduced, detail: intro.context });
+                            nodes.get(introduced).relations.push({ type: 'introduction', person: introducer, detail: intro.context });
+                        }
+                    }
+                });
+            }
+
+            // Convert to vis.js format
+            const visNodes = [];
+            nodes.forEach((data, id) => {
+                const totalConnections = data.flights + data.emails + data.documents + data.introductions;
+                const size = Math.min(12 + totalConnections * 2.5, 60);
+
+                // Color based on predominant connection type
+                let nodeColor = '#1a1a3a';
+                let borderColor = '#a855f7';
+                let borderWidth = 2;
+
+                // If this is the searched person, highlight them
+                const isSearchTarget = searchQuery &&
+                    id.toLowerCase().includes(searchQuery.toLowerCase());
+
+                if (isSearchTarget) {
+                    nodeColor = '#ff0000';  // Red for the searched person
+                    borderColor = '#ffffff';
+                    borderWidth = 4;
+                } else if (totalConnections > 20) {
+                    nodeColor = '#a855f7';  // Purple for most connected
+                    borderColor = '#ffd700';
+                } else if (data.flights > data.emails && data.flights > data.documents) {
+                    nodeColor = 'rgba(255, 149, 0, 0.3)';  // Orange if flights predominate
+                    borderColor = '#ff9500';
+                } else if (data.emails > data.flights && data.emails > data.documents) {
+                    nodeColor = 'rgba(0, 191, 255, 0.3)';  // Blue if emails predominate
+                    borderColor = '#00bfff';
+                } else if (data.documents > 0) {
+                    nodeColor = 'rgba(50, 205, 50, 0.3)';  // Green if documents
+                    borderColor = '#32cd32';
+                }
+
+                visNodes.push({
+                    id: id,
+                    label: id,
+                    size: isSearchTarget ? Math.max(size, 40) : size,  // Larger if target
+                    font: { color: '#ffffff', size: isSearchTarget ? 14 : 11 },
+                    title: `${id}\n━━━━━━━━━━━━━━━\n✈️ Flights: ${data.flights}\n📧 Emails: ${data.emails}\n📄 Documents: ${data.documents}\n🤝 Introductions: ${data.introductions}`,
+                    borderWidth: borderWidth,
+                    color: {
+                        background: nodeColor,
+                        border: borderColor,
+                        highlight: { background: '#c084fc', border: '#ffd700' }
+                    },
+                    data: data
+                });
+            });
+
+            const visEdges = edges.map((e, i) => {
+                const style = edgeStyles[e.type] || { dashes: false, width: 2 };
+                return {
+                    id: i,
+                    from: e.from,
+                    to: e.to,
+                    color: { color: e.color, highlight: '#ffffff' },
+                    title: e.title,
+                    type: e.type,
+                    dashes: style.dashes,
+                    width: style.width
+                };
+            });
+
+            // Filter invalid nodes (operational terms, not people)
+            const invalidNodes = [
+                'ABOVE', 'SAME', 'LESS', 'ADD', 'REPOSITION', 'TEST', 'FLIGHT',
+                'CHECK', 'RETURN', 'HOLDING', 'CERTIFICATION', 'APPROACHES',
+                'TAKEOFF', 'LANDING', 'TCAS', 'EMPTY', 'REPOSITON', 'OPS',
+                'RATHGEB', 'PRESIDENT', 'ILLEGIBLE', 'UNKNOWN',
+                // Email junk
+                'SENT', 'FROM', 'SUBJECT', 'MESSAGE', 'REPLY', 'FORWARD',
+                'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY',
+                'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER',
+                'RE:', 'FW:', 'CC:', 'BCC:', 'TO:', 'DATE:'
+            ];
+
+            // Patterns to exclude dates and timestamps
+            const junkPatterns = [
+                /^Sent:/i, /^From:/i, /^To:/i, /^Cc:/i, /^Subject:/i, /^Re:/i,
+                /^\d{1,2}\/\d{1,2}\/\d{2,4}/, // Date
+                /^\d{1,2}:\d{2}/, // Time
+                /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i,
+                /^(January|February|March|April|May|June|July|August|September|October|November|December)/i,
+                /^\*\*[^*]+\*\*$/, // **text**
+                /^Message\s/i,
+                /^\d+:\d+:\d+/, // Timestamps
+                /^On\s.*wrote/i,
+                /^Apr\s|^May\s|^Jun\s|^Jul\s|^Aug\s|^Sep\s|^Oct\s|^Nov\s|^Dec\s|^Jan\s|^Feb\s|^Mar\s/i
+            ];
+
+            // Known valid names (whitelist)
+            const knownValidNames = [
+                'jeffrey epstein', 'ghislaine maxwell', 'bill clinton', 'hillary clinton',
+                'donald trump', 'barack obama', 'prince andrew', 'alan dershowitz',
+                'leon black', 'les wexner', 'bill gates', 'elon musk', 'boris nikolic',
+                'victor pinchuk', 'steve tisch', 'larry visoski', 'sarah kellen',
+                'nadia marcinkova', 'jean-luc brunel', 'emmy taylor', 'lesley groff',
+                'eva andersson-dubin', 'glenn dubin', 'mort zuckerman', 'leslie wexner',
+                'jes staley', 'reid hoffman', 'woody allen', 'kevin spacey',
+                'naomi campbell', 'chris tucker', 'larry summers', 'stephen hawking'
+            ];
+
+            const filteredNodes = visNodes.filter(n => {
+                const id = n.id;
+                const idLower = id.toLowerCase();
+                const idUpper = id.toUpperCase();
+
+                // Always accept known names
+                if (knownValidNames.some(name => idLower.includes(name) || name.includes(idLower))) {
+                    return true;
+                }
+
+                // Exclude invalid terms
+                if (invalidNodes.some(inv => idUpper.includes(inv))) return false;
+
+                // Exclude junk patterns
+                if (junkPatterns.some(p => p.test(id))) return false;
+
+                // Exclude too short or codes
+                if (id.length <= 3) return false;
+                if (id.match(/^[A-Z]{2,4}$/)) return false;
+
+                // Exclude if contains too many numbers
+                const numCount = (id.match(/\d/g) || []).length;
+                if (numCount > 2) return false;
+
+                // Exclude if starts with numbers
+                if (id.match(/^\d/)) return false;
+
+                // Exclude unlikely names (contain common non-name words)
+                const junkWords = ['please', 'america', 'subject', 'http', 'www', 'email',
+                                   'sent', 'received', 'attached', 'forwarded', 'dear', 'regards'];
+                if (junkWords.some(w => idLower.includes(w))) return false;
+
+                // Exclude if has asterisks (markdown)
+                if (id.includes('**') || id.includes('*')) return false;
+
+                // Must look like a name: at least 2 parts or known name
+                const parts = id.trim().split(/\s+/);
+                if (parts.length < 2 && id.length < 10) return false;
+
+                return true;
+            });
+
+            // Update edges to include only valid nodes
+            const validNodeIds = new Set(filteredNodes.map(n => n.id));
+            const filteredEdges = visEdges.filter(e =>
+                validNodeIds.has(e.from) && validNodeIds.has(e.to)
+            );
+
+            allNodes = filteredNodes;
+            allEdges = filteredEdges;
+
+            renderNetwork(filteredNodes, filteredEdges);
+            updateStats(new Map(filteredNodes.map(n => [n.id, n.data])), filteredEdges);
+            updateTopList(new Map(filteredNodes.map(n => [n.id, n.data])));
+        }
+
+        // Parse passengers from text
+        function parsePassengers(text) {
+            // Terms to exclude (not people)
+            const excludeTerms = [
+                'REPOSITION', 'NO PASSENGERS', 'EMPTY', 'ABOVE', 'SAME', 'LESS', 'ADD',
+                'TEST', 'FLIGHT', 'CHECK', 'RETURN', 'HOLDING', 'CERTIFICATION',
+                'APPROACHES', 'TAKEOFF', 'LANDING', 'TCAS', 'SMOKE', 'CABIN',
+                'REPOSITON', 'OPS', 'NIGHT', 'SEAT', 'SAFETY', 'PITOT', 'STATIC',
+                'LEAK', 'BLEED', 'AIR', 'DUCT', 'APU', 'ILS', 'SINGLE', 'CARDS',
+                'CMP', 'FMS', 'SIM', 'INST', 'PPE', 'GMU'
+            ];
+
+            if (!text) return [];
+
+            // If contains operational terms, skip
+            const upperText = text.toUpperCase();
+            if (excludeTerms.some(term => upperText.includes(term))) {
+                // Extract valid names if present anyway
+                if (!upperText.match(/^(REPOSITION|TEST|EMPTY|NO PASSENGERS)/)) {
+                    // May have names + operational terms
+                } else {
+                    return [];
+                }
+            }
+
+            // Expand common abbreviations
+            const abbreviations = {
+                'JE': 'Jeffrey Epstein',
+                'GM': 'Ghislaine Maxwell',
+                'SK': 'Sarah Kellen',
+                'LV': 'Larry Visoski',
+                'ET': 'Emmy Taylor',
+                'AD': 'Alan Dershowitz',
+                'GMBM': 'Ghislaine Maxwell',
+                'JG': 'Jean-Luc Brunel'
+            };
+
+            let passengers = [];
+
+            // Search full names first
+            const namePatterns = [
+                /PRESIDENT\s+([A-Z][A-Z\s\.]+)/gi,
+                /(?:^|[\s,])([A-Z][a-z]+\s+[A-Z][a-z]+(?:\s+[A-Z]\.?\s*[A-Z][a-z]+)?)/g
+            ];
+
+            namePatterns.forEach(pattern => {
+                let match;
+                while ((match = pattern.exec(text)) !== null) {
+                    const name = match[1].trim();
+                    if (name.length > 5 && !excludeTerms.includes(name.toUpperCase())) {
+                        passengers.push(name);
+                    }
+                }
+            });
+
+            // If no full names found, search abbreviations
+            if (passengers.length === 0) {
+                const parts = text.split(/[,\s]+/).filter(p => p.length >= 2);
+                parts.forEach(part => {
+                    const upper = part.toUpperCase();
+                    if (abbreviations[upper]) {
+                        passengers.push(abbreviations[upper]);
+                    }
+                });
+            }
+
+            // Filter duplicates and invalid terms
+            return [...new Set(passengers)].filter(p =>
+                p.length > 3 &&
+                !excludeTerms.includes(p.toUpperCase()) &&
+                !p.match(/^\d+$/) &&
+                !p.match(/^[A-Z]{3,4}$/)  // Airport codes
+            );
+        }
+
+        // Render the network
+        function renderNetwork(nodes, edges) {
+            const container = document.getElementById('network');
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    font: {
+                        color: '#e0e0e0',
+                        size: 12
+                    },
+                    borderWidth: 2
+                },
+                edges: {
+                    smooth: {
+                        type: 'continuous'
+                    },
+                    width: 2
+                },
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -3000,
+                        springLength: 150,
+                        springConstant: 0.04
+                    },
+                    stabilization: {
+                        iterations: 100
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 100
+                }
+            };
+
+            network = new vis.Network(container, {
+                nodes: new vis.DataSet(nodes),
+                edges: new vis.DataSet(edges)
+            }, options);
+
+            // Click on node
+            network.on('click', function(params) {
+                if (params.nodes.length > 0) {
+                    const nodeId = params.nodes[0];
+                    showNodeInfo(nodeId);
+                }
+            });
+
+            // Double click -> go to investigate
+            network.on('doubleClick', function(params) {
+                if (params.nodes.length > 0) {
+                    const nodeId = params.nodes[0];
+                    window.location.href = `/investigate?name=${encodeURIComponent(nodeId)}`;
+                }
+            });
+        }
+
+        // Show node info
+        function showNodeInfo(nodeId) {
+            const node = allNodes.find(n => n.id === nodeId);
+            if (!node || !node.data) return;
+
+            document.getElementById('nodeInfoName').textContent = nodeId;
+
+            const relationsDiv = document.getElementById('nodeRelations');
+            const relations = node.data.relations || [];
+
+            if (relations.length === 0) {
+                relationsDiv.innerHTML = '<p style="color: var(--text-muted);">No relationships found</p>';
+            } else {
+                relationsDiv.innerHTML = relations.map(r => `
+                    <div class="relation-item ${r.type}">
+                        <div class="type">${getTypeLabel(r.type)}</div>
+                        <div class="name">${r.person}</div>
+                        <div class="detail">${r.detail || ''}</div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('nodeInfo').classList.add('visible');
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'flight': '<i class="fas fa-plane" style="color:#ff9500"></i> Flight together',
+                'email': '<i class="fas fa-envelope" style="color:#00bfff"></i> Email',
+                'document': '<i class="fas fa-file-alt" style="color:#32cd32"></i> Document',
+                'introduction': '<i class="fas fa-handshake" style="color:#ffd700"></i> Introduction'
+            };
+            return labels[type] || type;
+        }
+
+        function closeNodeInfo() {
+            document.getElementById('nodeInfo').classList.remove('visible');
+        }
+
+        // Update statistics
+        function updateStats(nodes, edges) {
+            document.getElementById('totalNodes').textContent = nodes.size;
+            document.getElementById('totalEdges').textContent = edges.length;
+
+            const flightEdges = edges.filter(e => e.type === 'flight').length;
+            const emailEdges = edges.filter(e => e.type === 'email').length;
+
+            document.getElementById('totalFlights').textContent = flightEdges;
+            document.getElementById('totalEmails').textContent = emailEdges;
+        }
+
+        // Update top list
+        function updateTopList(nodes) {
+            const sorted = Array.from(nodes.values())
+                .map(n => ({
+                    name: n.id,
+                    total: n.flights + n.emails + n.documents + n.introductions,
+                    flights: n.flights,
+                    emails: n.emails,
+                    documents: n.documents
+                }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 15);
+
+            const topList = document.getElementById('topList');
+            topList.innerHTML = sorted.map(p => `
+                <div class="top-item" onclick="focusNode('${p.name}')">
+                    <span class="name">${p.name}</span>
+                    <span class="badges">
+                        ${p.flights > 0 ? `<span class="badge" style="background: #ff9500; color: #000;" title="Flights"><i class="fas fa-plane"></i> ${p.flights}</span>` : ''}
+                        ${p.emails > 0 ? `<span class="badge" style="background: #00bfff; color: #000;" title="Email"><i class="fas fa-envelope"></i> ${p.emails}</span>` : ''}
+                        ${p.documents > 0 ? `<span class="badge" style="background: #32cd32; color: #000;" title="Documents"><i class="fas fa-file-alt"></i> ${p.documents}</span>` : ''}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        // Focus on a node
+        function focusNode(nodeId) {
+            if (network) {
+                network.focus(nodeId, {
+                    scale: 1.5,
+                    animation: true
+                });
+                network.selectNodes([nodeId]);
+                showNodeInfo(nodeId);
+            }
+        }
+
+        // Search person - pressing Enter builds the map
+        document.getElementById('searchPerson').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buildRelationshipMap();
+            }
+        });
+
+        // Autocomplete: search in existing graph while typing
+        document.getElementById('searchPerson').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            if (query.length < 2 || allNodes.length === 0) return;
+
+            // If the graph is already built, highlight the node
+            const found = allNodes.find(n => n.id.toLowerCase().includes(query));
+            if (found) {
+                focusNode(found.id);
+            }
+        });
+
+        // Filters
+        ['filterFlights', 'filterEmails', 'filterDocuments', 'filterIntroductions'].forEach(id => {
+            document.getElementById(id).addEventListener('change', applyFilters);
+        });
+
+        function applyFilters() {
+            if (!network || !relationshipData) return;
+
+            const showFlights = document.getElementById('filterFlights').checked;
+            const showEmails = document.getElementById('filterEmails').checked;
+            const showDocuments = document.getElementById('filterDocuments').checked;
+            const showIntroductions = document.getElementById('filterIntroductions').checked;
+
+            const filteredEdges = allEdges.filter(e => {
+                if (e.type === 'flight' && !showFlights) return false;
+                if (e.type === 'email' && !showEmails) return false;
+                if (e.type === 'document' && !showDocuments) return false;
+                if (e.type === 'introduction' && !showIntroductions) return false;
+                return true;
+            });
+
+            // Find connected nodes
+            const connectedNodes = new Set();
+            filteredEdges.forEach(e => {
+                connectedNodes.add(e.from);
+                connectedNodes.add(e.to);
+            });
+
+            const filteredNodes = allNodes.filter(n => connectedNodes.has(n.id));
+
+            renderNetwork(filteredNodes, filteredEdges);
+        }
+
+        // ================== SAVED INVESTIGATIONS ==================
+
+        // Load saved investigations list
+        async function loadSavedInvestigations() {
+            const select = document.getElementById('savedInvestigation');
+            try {
+                const response = await fetch('/api/investigations/list');
+                const data = await response.json();
+                const investigations = data.investigations || [];
+
+                if (investigations.length === 0) {
+                    select.innerHTML = '<option value="">-- No saved investigations --</option>';
+                    return;
+                }
+
+                select.innerHTML = '<option value="">-- Select investigation --</option>';
+                investigations.forEach(inv => {
+                    const date = inv.date ? inv.date.split('T')[0] : 'N/A';
+                    const option = document.createElement('option');
+                    option.value = inv.id;
+                    // Use objective as name and people as key_people
+                    const objective = inv.objective || 'Investigation';
+                    const shortObjective = objective.length > 40 ? objective.substring(0, 40) + '...' : objective;
+                    option.textContent = `${shortObjective} (${date}) - ${inv.people?.length || 0} people`;
+                    // Adapt fields for the buildMapFromInvestigation function
+                    option.dataset.investigation = JSON.stringify({
+                        id: inv.id,
+                        name: inv.objective,
+                        key_people: inv.people || []
+                    });
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading investigations:', error);
+                select.innerHTML = '<option value="">-- Loading error --</option>';
+            }
+        }
+
+        // Investigation selection handler
+        document.getElementById('savedInvestigation').addEventListener('change', async function(e) {
+            const selectedOption = e.target.selectedOptions[0];
+            if (!selectedOption || !selectedOption.value) return;
+
+            const investigation = JSON.parse(selectedOption.dataset.investigation);
+            await buildMapFromInvestigation(investigation);
+        });
+
+        // Build the map from a saved investigation
+        async function buildMapFromInvestigation(investigation) {
+            const btn = document.getElementById('buildBtn');
+            btn.disabled = true;
+
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingText').textContent = `Building map for "${investigation.name}"...`;
+
+            // Reset steps
+            ['step-flights', 'step-emails', 'step-docs', 'step-build'].forEach(s => setStepStatus(s, ''));
+
+            try {
+                // Extract key people from the investigation
+                const keyPeople = investigation.key_people || [];
+
+                if (keyPeople.length === 0) {
+                    throw new Error('No key people in this investigation');
+                }
+
+                console.log(`Building map for ${keyPeople.length} people:`, keyPeople);
+
+                // Step 1: Load flights
+                setStepStatus('step-flights', 'active');
+                document.getElementById('loadingText').textContent = 'Loading flight data...';
+                const flightsResponse = await fetch('/api/flights');
+                const flightsData = await flightsResponse.json();
+                setStepStatus('step-flights', 'done');
+
+                // Step 2: Search emails for each key person
+                setStepStatus('step-emails', 'active');
+                document.getElementById('loadingText').textContent = `Searching emails for ${keyPeople.length} people...`;
+
+                const allEmails = { communications: [] };
+                for (const person of keyPeople) {
+                    try {
+                        const emailsUrl = `/api/relationships/emails?person=${encodeURIComponent(person)}`;
+                        const emailsResponse = await fetch(emailsUrl);
+                        const emailsData = await emailsResponse.json();
+                        if (emailsData.communications) {
+                            allEmails.communications.push(...emailsData.communications);
+                        }
+                    } catch (e) {
+                        console.warn(`Email error for ${person}:`, e);
+                    }
+                }
+                setStepStatus('step-emails', 'done');
+
+                // Step 3: Search documents for each key person
+                setStepStatus('step-docs', 'active');
+                document.getElementById('loadingText').textContent = `Searching documents for ${keyPeople.length} people...`;
+
+                const allDocs = { cooccurrences: [], introductions: [] };
+                for (const person of keyPeople) {
+                    try {
+                        const docsUrl = `/api/relationships/documents?person=${encodeURIComponent(person)}`;
+                        const docsResponse = await fetch(docsUrl);
+                        const docsData = await docsResponse.json();
+                        if (docsData.cooccurrences) {
+                            allDocs.cooccurrences.push(...docsData.cooccurrences);
+                        }
+                        if (docsData.introductions) {
+                            allDocs.introductions.push(...docsData.introductions);
+                        }
+                    } catch (e) {
+                        console.warn(`Document error for ${person}:`, e);
+                    }
+                }
+                setStepStatus('step-docs', 'done');
+
+                // Step 4: Build graph
+                setStepStatus('step-build', 'active');
+                document.getElementById('loadingText').textContent = 'Building relationship graph...';
+
+                relationshipData = {
+                    flights: flightsData,
+                    emails: allEmails,
+                    documents: allDocs
+                };
+
+                // Build graph with focus on key people
+                buildGraphForInvestigation(relationshipData, keyPeople);
+                setStepStatus('step-build', 'done');
+
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('statsSection').style.display = 'block';
+                document.getElementById('topSection').style.display = 'block';
+
+                // Show message with investigation info
+                if (allNodes.length > 0) {
+                    console.log(`Map built: ${allNodes.length} nodes, ${allEdges.length} relationships`);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loadingText').textContent = 'Error: ' + error.message;
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }, 2000);
+            }
+
+            btn.disabled = false;
+        }
+
+        // Build graph with focus on investigation people
+        function buildGraphForInvestigation(data, keyPeople) {
+            const nodes = new Map();
+            const edges = [];
+            const edgeKeys = new Set();
+
+            const colors = {
+                flight: '#ff9500',
+                email: '#00bfff',
+                document: '#32cd32',
+                introduction: '#ffd700'
+            };
+
+            const edgeStyles = {
+                flight: { dashes: false, width: 3 },
+                email: { dashes: [5, 5], width: 2 },
+                document: { dashes: [2, 2], width: 1 },
+                introduction: { dashes: false, width: 4 }
+            };
+
+            // Key people list in lowercase for matching
+            const keyPeopleLower = keyPeople.map(p => p.toLowerCase());
+
+            // Function to check if a person is among the key people
+            const isKeyPerson = (name) => {
+                const nameLower = name.toLowerCase();
+                return keyPeopleLower.some(kp =>
+                    nameLower.includes(kp) || kp.includes(nameLower)
+                );
+            };
+
+            // Process flights - include only if they involve key people
+            if (data.flights && data.flights.flights) {
+                const flightsByDate = {};
+
+                data.flights.flights.forEach(flight => {
+                    const passengers = parsePassengers(flight.passengers || '');
+
+                    // Include only flights with at least one key person
+                    const hasKeyPerson = passengers.some(p => isKeyPerson(p));
+                    if (!hasKeyPerson) return;
+
+                    if (passengers.length > 1) {
+                        const key = `${flight.date}-${flight.from}-${flight.to}`;
+                        if (!flightsByDate[key]) flightsByDate[key] = new Set();
+                        passengers.forEach(p => flightsByDate[key].add(p));
+                    }
+
+                    passengers.forEach(p => {
+                        if (!nodes.has(p)) {
+                            nodes.set(p, {
+                                id: p,
+                                label: p,
+                                flights: 0,
+                                emails: 0,
+                                documents: 0,
+                                introductions: 0,
+                                relations: [],
+                                isKeyPerson: isKeyPerson(p)
+                            });
+                        }
+                        nodes.get(p).flights++;
+                    });
+                });
+
+                Object.entries(flightsByDate).forEach(([key, passengers]) => {
+                    const passengerList = Array.from(passengers);
+                    for (let i = 0; i < passengerList.length; i++) {
+                        for (let j = i + 1; j < passengerList.length; j++) {
+                            const p1 = passengerList[i];
+                            const p2 = passengerList[j];
+                            const edgeKey = [p1, p2].sort().join('|') + '|flight';
+
+                            if (!edgeKeys.has(edgeKey)) {
+                                edgeKeys.add(edgeKey);
+                                edges.push({
+                                    from: p1,
+                                    to: p2,
+                                    type: 'flight',
+                                    color: colors.flight,
+                                    title: `Flight together: ${key}`,
+                                    detail: key
+                                });
+
+                                if (nodes.has(p1)) {
+                                    nodes.get(p1).relations.push({ type: 'flight', person: p2, detail: key });
+                                }
+                                if (nodes.has(p2)) {
+                                    nodes.get(p2).relations.push({ type: 'flight', person: p1, detail: key });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Process emails
+            if (data.emails && data.emails.communications) {
+                data.emails.communications.forEach(comm => {
+                    const from = comm.from;
+                    const to = comm.to;
+
+                    if (from && to && from !== to) {
+                        [from, to].forEach(p => {
+                            if (!nodes.has(p)) {
+                                nodes.set(p, {
+                                    id: p,
+                                    label: p,
+                                    flights: 0,
+                                    emails: 0,
+                                    documents: 0,
+                                    introductions: 0,
+                                    relations: [],
+                                    isKeyPerson: isKeyPerson(p)
+                                });
+                            }
+                            nodes.get(p).emails++;
+                        });
+
+                        const edgeKey = [from, to].sort().join('|') + '|email';
+                        if (!edgeKeys.has(edgeKey)) {
+                            edgeKeys.add(edgeKey);
+                            edges.push({
+                                from: from,
+                                to: to,
+                                type: 'email',
+                                color: colors.email,
+                                title: `Email: ${comm.subject || 'N/A'}`,
+                                detail: comm.subject || comm.doc_id
+                            });
+
+                            nodes.get(from).relations.push({ type: 'email', person: to, detail: comm.subject || comm.doc_id });
+                            nodes.get(to).relations.push({ type: 'email', person: from, detail: comm.subject || comm.doc_id });
+                        }
+                    }
+                });
+            }
+
+            // Process documents (co-occurrences)
+            if (data.documents && data.documents.cooccurrences) {
+                data.documents.cooccurrences.forEach(cooc => {
+                    const people = cooc.people || [];
+                    const docId = cooc.doc_id;
+
+                    people.forEach(p => {
+                        if (!nodes.has(p)) {
+                            nodes.set(p, {
+                                id: p,
+                                label: p,
+                                flights: 0,
+                                emails: 0,
+                                documents: 0,
+                                introductions: 0,
+                                relations: [],
+                                isKeyPerson: isKeyPerson(p)
+                            });
+                        }
+                        nodes.get(p).documents++;
+                    });
+
+                    for (let i = 0; i < people.length; i++) {
+                        for (let j = i + 1; j < people.length; j++) {
+                            const edgeKey = [people[i], people[j]].sort().join('|') + '|document';
+                            if (!edgeKeys.has(edgeKey)) {
+                                edgeKeys.add(edgeKey);
+                                edges.push({
+                                    from: people[i],
+                                    to: people[j],
+                                    type: 'document',
+                                    color: colors.document,
+                                    title: `Document: ${docId}`,
+                                    detail: docId
+                                });
+
+                                nodes.get(people[i]).relations.push({ type: 'document', person: people[j], detail: docId });
+                                nodes.get(people[j]).relations.push({ type: 'document', person: people[i], detail: docId });
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Process introductions
+            if (data.documents && data.documents.introductions) {
+                data.documents.introductions.forEach(intro => {
+                    const introducer = intro.introducer;
+                    const introduced = intro.introduced;
+                    const to = intro.to;
+
+                    [introducer, introduced, to].filter(Boolean).forEach(p => {
+                        if (!nodes.has(p)) {
+                            nodes.set(p, {
+                                id: p,
+                                label: p,
+                                flights: 0,
+                                emails: 0,
+                                documents: 0,
+                                introductions: 0,
+                                relations: [],
+                                isKeyPerson: isKeyPerson(p)
+                            });
+                        }
+                        nodes.get(p).introductions++;
+                    });
+
+                    if (introducer && introduced) {
+                        const edgeKey = [introducer, introduced].sort().join('|') + '|introduction';
+                        if (!edgeKeys.has(edgeKey)) {
+                            edgeKeys.add(edgeKey);
+                            edges.push({
+                                from: introducer,
+                                to: introduced,
+                                type: 'introduction',
+                                color: colors.introduction,
+                                title: `Introduction: ${intro.context || 'N/A'}`,
+                                detail: intro.context
+                            });
+
+                            nodes.get(introducer).relations.push({ type: 'introduction', person: introduced, detail: intro.context });
+                            nodes.get(introduced).relations.push({ type: 'introduction', person: introducer, detail: intro.context });
+                        }
+                    }
+                });
+            }
+
+            // Convert to vis.js format with highlighting for key people
+            const visNodes = [];
+            nodes.forEach((data, id) => {
+                const totalConnections = data.flights + data.emails + data.documents + data.introductions;
+                const size = Math.min(12 + totalConnections * 2.5, 60);
+
+                let nodeColor = '#1a1a3a';
+                let borderColor = '#a855f7';
+                let borderWidth = 2;
+
+                // Highlight key people from the investigation
+                if (data.isKeyPerson) {
+                    nodeColor = '#ff0000';
+                    borderColor = '#ffffff';
+                    borderWidth = 4;
+                } else if (totalConnections > 20) {
+                    nodeColor = '#a855f7';
+                    borderColor = '#ffd700';
+                } else if (data.flights > data.emails && data.flights > data.documents) {
+                    nodeColor = 'rgba(255, 149, 0, 0.3)';
+                    borderColor = '#ff9500';
+                } else if (data.emails > data.flights && data.emails > data.documents) {
+                    nodeColor = 'rgba(0, 191, 255, 0.3)';
+                    borderColor = '#00bfff';
+                } else if (data.documents > 0) {
+                    nodeColor = 'rgba(50, 205, 50, 0.3)';
+                    borderColor = '#32cd32';
+                }
+
+                visNodes.push({
+                    id: id,
+                    label: id,
+                    size: data.isKeyPerson ? Math.max(size, 40) : size,
+                    font: { color: '#ffffff', size: data.isKeyPerson ? 14 : 11 },
+                    title: `${id}\n━━━━━━━━━━━━━━━\n✈️ Flights: ${data.flights}\n📧 Emails: ${data.emails}\n📄 Documents: ${data.documents}\n🤝 Introductions: ${data.introductions}`,
+                    borderWidth: borderWidth,
+                    color: {
+                        background: nodeColor,
+                        border: borderColor,
+                        highlight: { background: '#c084fc', border: '#ffd700' }
+                    },
+                    data: data
+                });
+            });
+
+            const visEdges = edges.map((e, i) => {
+                const style = edgeStyles[e.type] || { dashes: false, width: 2 };
+                return {
+                    id: i,
+                    from: e.from,
+                    to: e.to,
+                    color: { color: e.color, highlight: '#ffffff' },
+                    title: e.title,
+                    type: e.type,
+                    dashes: style.dashes,
+                    width: style.width
+                };
+            });
+
+            // Apply the same cleanup filters
+            const invalidNodes = [
+                'ABOVE', 'SAME', 'LESS', 'ADD', 'REPOSITION', 'TEST', 'FLIGHT',
+                'CHECK', 'RETURN', 'HOLDING', 'CERTIFICATION', 'APPROACHES',
+                'TAKEOFF', 'LANDING', 'TCAS', 'EMPTY', 'REPOSITON', 'OPS',
+                'SENT', 'FROM', 'SUBJECT', 'MESSAGE', 'REPLY', 'FORWARD',
+                'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY',
+                'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER',
+                'RE:', 'FW:', 'CC:', 'BCC:', 'TO:', 'DATE:'
+            ];
+
+            const junkPatterns = [
+                /^Sent:/i, /^From:/i, /^To:/i, /^Cc:/i, /^Subject:/i, /^Re:/i,
+                /^\d{1,2}\/\d{1,2}\/\d{2,4}/,
+                /^\d{1,2}:\d{2}/,
+                /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i,
+                /^(January|February|March|April|May|June|July|August|September|October|November|December)/i,
+                /^\*\*[^*]+\*\*$/,
+                /^Message\s/i,
+                /^\d+:\d+:\d+/,
+                /^On\s.*wrote/i,
+                /^Apr\s|^May\s|^Jun\s|^Jul\s|^Aug\s|^Sep\s|^Oct\s|^Nov\s|^Dec\s|^Jan\s|^Feb\s|^Mar\s/i
+            ];
+
+            const filteredNodes = visNodes.filter(n => {
+                const id = n.id;
+                const idLower = id.toLowerCase();
+                const idUpper = id.toUpperCase();
+
+                // Always keep key people
+                if (n.data && n.data.isKeyPerson) return true;
+
+                if (invalidNodes.some(inv => idUpper.includes(inv))) return false;
+                if (junkPatterns.some(p => p.test(id))) return false;
+                if (id.length <= 3) return false;
+                if (id.match(/^[A-Z]{2,4}$/)) return false;
+
+                const numCount = (id.match(/\d/g) || []).length;
+                if (numCount > 2) return false;
+                if (id.match(/^\d/)) return false;
+
+                const junkWords = ['please', 'america', 'subject', 'http', 'www', 'email',
+                                   'sent', 'received', 'attached', 'forwarded', 'dear', 'regards'];
+                if (junkWords.some(w => idLower.includes(w))) return false;
+                if (id.includes('**') || id.includes('*')) return false;
+
+                const parts = id.trim().split(/\s+/);
+                if (parts.length < 2 && id.length < 10) return false;
+
+                return true;
+            });
+
+            const validNodeIds = new Set(filteredNodes.map(n => n.id));
+            const filteredEdges = visEdges.filter(e =>
+                validNodeIds.has(e.from) && validNodeIds.has(e.to)
+            );
+
+            allNodes = filteredNodes;
+            allEdges = filteredEdges;
+
+            renderNetwork(filteredNodes, filteredEdges);
+            updateStats(new Map(filteredNodes.map(n => [n.id, n.data])), filteredEdges);
+            updateTopList(new Map(filteredNodes.map(n => [n.id, n.data])));
+        }
+
+        // Load investigations on startup
+        document.addEventListener('DOMContentLoaded', loadSavedInvestigations);
+    </script>
+</body>
+</html>

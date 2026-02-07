@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Parrhesepstein</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i { font-size: 28px; color: var(--accent); }
+
+        .logo h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .settings-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        .settings-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .settings-card h3 {
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-card h3 i {
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group select {
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+
+        .form-group select option {
+            background: var(--bg-input);
+            color: var(--text);
+        }
+
+        .current-key {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .current-key .key-display {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .key-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .key-status.active {
+            background: rgba(46, 213, 115, 0.1);
+            color: var(--success);
+        }
+
+        .key-status.missing {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--danger);
+        }
+
+        .model-description {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            padding-left: 2px;
+        }
+
+        .save-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .btn-save {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .btn-save:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-save:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            font-size: 13px;
+            display: none;
+        }
+
+        .status-message.success {
+            color: var(--success);
+            display: inline;
+        }
+
+        .status-message.error {
+            color: var(--danger);
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-cog"></i>
+            <h1>Parrhesepstein — Settings</h1>
+        </div>
+    </div>
+
+    <div class="settings-container">
+        <!-- API Key -->
+        <div class="settings-card">
+            <h3><i class="fas fa-key"></i> Claude API Key</h3>
+            <div class="current-key">
+                <div class="key-display" id="currentKey">Loading...</div>
+                <span class="key-status" id="keyStatus"></span>
+            </div>
+            <div class="form-group">
+                <label for="newApiKey">New API Key</label>
+                <input type="password" id="newApiKey" placeholder="sk-ant-api03-...">
+            </div>
+        </div>
+
+        <!-- Model -->
+        <div class="settings-card">
+            <h3><i class="fas fa-microchip"></i> Claude Model</h3>
+            <div class="form-group">
+                <label for="modelSelect">AI Model</label>
+                <select id="modelSelect">
+                    <option value="claude-sonnet-4-20250514">Sonnet 4 (Balanced - Default)</option>
+                    <option value="claude-opus-4-20250514">Opus 4 (Most Capable)</option>
+                    <option value="claude-haiku-4-5-20251001">Haiku 4.5 (Fastest)</option>
+                </select>
+                <div class="model-description" id="modelDescription">Balanced between speed and quality. Ideal for most analyses.</div>
+            </div>
+        </div>
+
+        <!-- Language -->
+        <div class="settings-card">
+            <h3><i class="fas fa-language"></i> Output Language</h3>
+            <div class="form-group">
+                <label for="languageSelect">Claude response language</label>
+                <select id="languageSelect">
+                    <option value="Italiano">Italiano</option>
+                    <option value="English">English</option>
+                    <option value="Español">Espa&ntilde;ol</option>
+                    <option value="Français">Fran&ccedil;ais</option>
+                    <option value="Deutsch">Deutsch</option>
+                    <option value="Português">Portugu&ecirc;s</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Save -->
+        <div class="save-section">
+            <button class="btn-save" id="btnSave" onclick="saveSettings()">
+                <i class="fas fa-save"></i> Save
+            </button>
+            <span class="status-message" id="statusMessage"></span>
+        </div>
+
+        <!-- About -->
+        <div class="settings-card" style="margin-top: 20px; text-align: center;">
+            <h3 style="justify-content: center;"><i class="fas fa-skull-crossbones"></i> Parrhesepstein</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Speaking truth without fear</p>
+            <p style="font-size: 13px; color: var(--text);">
+                Developed by <strong style="color: var(--accent);">The Pirate</strong>
+            </p>
+            <a href="https://x.com/Pinperepette" target="_blank" rel="noopener noreferrer"
+               style="display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 20px;
+                      background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3);
+                      border-radius: 20px; color: var(--accent); text-decoration: none; font-size: 13px;
+                      transition: background 0.2s;">
+                <i class="fab fa-x-twitter"></i> @Pinperepette
+            </a>
+        </div>
+    </div>
+
+    <script src="/static/sidebar.js"></script>
+    <script>
+        const modelDescriptions = {
+            'claude-sonnet-4-20250514': 'Balanced between speed and quality. Ideal for most analyses.',
+            'claude-opus-4-20250514': 'Most capable. Best for complex analyses and deep investigations. Slower.',
+            'claude-haiku-4-5-20251001': 'Fastest. Ideal for quick operations and batch processing. Less accurate.'
+        };
+
+        document.getElementById('modelSelect').addEventListener('change', function() {
+            document.getElementById('modelDescription').textContent = modelDescriptions[this.value] || '';
+        });
+
+        async function loadSettings() {
+            try {
+                const resp = await fetch('/api/settings');
+                const data = await resp.json();
+
+                if (data.api_key_masked) {
+                    document.getElementById('currentKey').textContent = data.api_key_masked;
+                } else {
+                    document.getElementById('currentKey').textContent = 'Not configured';
+                }
+
+                const status = document.getElementById('keyStatus');
+                if (data.api_key_set) {
+                    status.className = 'key-status active';
+                    status.innerHTML = '<i class="fas fa-check-circle"></i> Active';
+                } else {
+                    status.className = 'key-status missing';
+                    status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Missing';
+                }
+
+                document.getElementById('modelSelect').value = data.model;
+                document.getElementById('modelDescription').textContent = modelDescriptions[data.model] || '';
+                document.getElementById('languageSelect').value = data.language;
+            } catch (e) {
+                console.error('Error loading settings:', e);
+            }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('btnSave');
+            const status = document.getElementById('statusMessage');
+            btn.disabled = true;
+            status.className = 'status-message';
+            status.style.display = 'none';
+
+            const payload = {
+                model: document.getElementById('modelSelect').value,
+                language: document.getElementById('languageSelect').value
+            };
+
+            const newKey = document.getElementById('newApiKey').value.trim();
+            if (newKey) {
+                payload.api_key = newKey;
+            }
+
+            try {
+                const resp = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await resp.json();
+
+                if (resp.ok && data.success) {
+                    status.className = 'status-message success';
+                    status.innerHTML = '<i class="fas fa-check"></i> Settings saved successfully';
+                    status.style.display = 'inline';
+                    document.getElementById('newApiKey').value = '';
+                    loadSettings();
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (e) {
+                status.className = 'status-message error';
+                status.innerHTML = '<i class="fas fa-times"></i> ' + e.message;
+                status.style.display = 'inline';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        loadSettings();
+    </script>
+</body>
+</html>

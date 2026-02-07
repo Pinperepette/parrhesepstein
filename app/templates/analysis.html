@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis - Epstein Files Analyzer - Justice.gov</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i { font-size: 28px; color: var(--accent); }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 30px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-card .icon {
+            float: right;
+            font-size: 32px;
+            opacity: 0.3;
+            margin-top: -10px;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h2 i {
+            color: var(--accent);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Analysis Content */
+        .analysis-content {
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .analysis-content h1, .analysis-content h2, .analysis-content h3 {
+            color: var(--accent);
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .analysis-content h1 { font-size: 22px; }
+        .analysis-content h2 { font-size: 18px; }
+        .analysis-content h3 { font-size: 16px; }
+
+        .analysis-content p {
+            margin-bottom: 15px;
+        }
+
+        .analysis-content ul, .analysis-content ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .analysis-content li {
+            margin-bottom: 8px;
+        }
+
+        .analysis-content strong {
+            color: var(--warning);
+        }
+
+        .analysis-content code {
+            background: var(--bg-input);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        /* Entity Tags */
+        .entity-section {
+            margin-bottom: 25px;
+        }
+
+        .entity-section h4 {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .entity-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: var(--bg-input);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .tag:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .tag.date { border-left: 3px solid var(--success); }
+        .tag.email { border-left: 3px solid var(--warning); }
+        .tag.phone { border-left: 3px solid var(--danger); }
+        .tag.term { border-left: 3px solid var(--accent); }
+
+        .tag .count {
+            background: rgba(0, 212, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+            font-size: 10px;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Saved Analyses Section */
+        .saved-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: 30px;
+            overflow: hidden;
+        }
+
+        .saved-section .card-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .saved-section .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .saved-section .card-header h2 i { color: var(--accent); }
+
+        .saved-group-title {
+            font-size: 11px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 20px 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .saved-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+        }
+
+        .saved-item:hover { background: rgba(0, 212, 255, 0.05); }
+
+        .saved-item .item-info {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .saved-item .item-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .saved-item .item-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .saved-item .item-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .type-network { background: #a855f7; color: white; }
+        .type-deep { background: var(--warning); color: black; }
+        .type-search { background: var(--accent); color: black; }
+        .type-synthesis { background: var(--success); color: black; }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger);
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        .btn-delete-all {
+            padding: 6px 14px;
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: var(--danger);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-delete-all:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+
+        .saved-empty {
+            padding: 30px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Print Styles */
+        @media print {
+            .header, .nav-links, .actions, .btn, .saved-section { display: none; }
+            body { background: white; color: black; }
+            .card { border: 1px solid #ddd; }
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover { color: var(--text); }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Word Cloud */
+        .word-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .word-cloud .word {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: var(--bg-input);
+            cursor: default;
+            transition: all 0.3s;
+        }
+
+        .word-cloud .word:hover {
+            transform: scale(1.1);
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-chart-line"></i>
+            <div>
+                <h1>Document Analysis</h1>
+                <span>AI-generated report</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <i class="fas fa-file-pdf icon"></i>
+                <div class="label">Documents Analyzed</div>
+                <div class="value" id="docCount">-</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-search icon"></i>
+                <div class="label">Search Query</div>
+                <div class="value" id="queryValue" style="font-size: 18px;">-</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-font icon"></i>
+                <div class="label">Characters Analyzed</div>
+                <div class="value" id="charCount">-</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar icon"></i>
+                <div class="label">Dates Found</div>
+                <div class="value" id="dateCount">-</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Main Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-brain"></i> AI Analysis</h2>
+                    <div class="actions">
+                        <button class="btn btn-secondary" id="btnClearAnalysis" onclick="clearCurrentAnalysis()" style="display: none;">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyAnalysis()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="analysisContent" class="analysis-content">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-pie"></i>
+                            <h3>No analysis available</h3>
+                            <p>Go back to the search page to select documents</p>
+                            <a href="/" class="btn btn-primary" style="margin-top: 20px;">
+                                <i class="fas fa-search"></i> Go to Search
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <!-- Charts Card -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-pie"></i> Visualizations</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="tabs">
+                            <div class="tab active" onclick="showTab('wordcloud')">Word Cloud</div>
+                            <div class="tab" onclick="showTab('barchart')">Top Terms</div>
+                        </div>
+
+                        <div id="wordcloud" class="tab-content active">
+                            <div class="word-cloud" id="wordCloudContainer">
+                                <p style="color: var(--text-muted);">No data</p>
+                            </div>
+                        </div>
+
+                        <div id="barchart" class="tab-content">
+                            <div class="chart-container">
+                                <canvas id="termsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entities Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-tags"></i> Extracted Entities</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="entity-section">
+                            <h4><i class="fas fa-calendar-alt"></i> Date</h4>
+                            <div class="entity-tags" id="datesContainer">
+                                <span class="tag date">No dates found</span>
+                            </div>
+                        </div>
+
+                        <div class="entity-section">
+                            <h4><i class="fas fa-envelope"></i> Email</h4>
+                            <div class="entity-tags" id="emailsContainer">
+                                <span class="tag email">No emails found</span>
+                            </div>
+                        </div>
+
+                        <div class="entity-section">
+                            <h4><i class="fas fa-phone"></i> Phones</h4>
+                            <div class="entity-tags" id="phonesContainer">
+                                <span class="tag phone">No phones found</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Analyses -->
+        <div class="saved-section" id="savedSection">
+            <div class="card-header">
+                <h2><i class="fas fa-database"></i> Saved Analyses</h2>
+                <button class="btn-delete-all" id="deleteAllBtn" onclick="deleteAll()" style="display: none;">
+                    <i class="fas fa-trash-alt"></i> Delete All
+                </button>
+            </div>
+            <div id="savedList">
+                <div class="saved-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="actions" style="margin-top: 30px; justify-content: center;">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> New Search
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let analysisData = null;
+        let termsChart = null;
+
+        // Load data from localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const stored = localStorage.getItem('analysisResult');
+            const query = localStorage.getItem('analysisQuery');
+            const docCount = localStorage.getItem('analysisDocCount');
+
+            if (stored) {
+                analysisData = JSON.parse(stored);
+                renderAnalysis(analysisData, query, docCount);
+                document.getElementById('btnClearAnalysis').style.display = 'flex';
+            }
+        });
+
+        function renderAnalysis(data, query, docCount) {
+            // Stats
+            document.getElementById('docCount').textContent = docCount || data.doc_count || '-';
+            document.getElementById('queryValue').textContent = query || '-';
+            document.getElementById('charCount').textContent = formatNumber(data.total_chars || 0);
+            document.getElementById('dateCount').textContent = data.entities?.dates?.length || 0;
+
+            // Analysis content
+            const content = document.getElementById('analysisContent');
+            if (data.analysis) {
+                content.innerHTML = formatMarkdown(data.analysis);
+            }
+
+            // Entities
+            if (data.entities) {
+                renderEntities(data.entities);
+                renderCharts(data.entities);
+            }
+        }
+
+        function formatMarkdown(text) {
+            return text
+                .replace(/^## (\d+\.\s+.+)$/gm, '<h2>$1</h2>')
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^(.+)$/gm, '<p>$1</p>')
+                .replace(/<p><h/g, '<h')
+                .replace(/<\/h(\d)><\/p>/g, '</h$1>')
+                .replace(/<p><ul>/g, '<ul>')
+                .replace(/<\/ul><\/p>/g, '</ul>')
+                .replace(/<p><\/p>/g, '');
+        }
+
+        function renderEntities(entities) {
+            // Dates
+            const datesContainer = document.getElementById('datesContainer');
+            if (entities.dates && entities.dates.length > 0) {
+                datesContainer.innerHTML = entities.dates.map(d =>
+                    `<span class="tag date">${d}</span>`
+                ).join('');
+            }
+
+            // Emails
+            const emailsContainer = document.getElementById('emailsContainer');
+            if (entities.emails && entities.emails.length > 0) {
+                emailsContainer.innerHTML = entities.emails.map(e =>
+                    `<span class="tag email">${e}</span>`
+                ).join('');
+            }
+
+            // Phones
+            const phonesContainer = document.getElementById('phonesContainer');
+            if (entities.phones && entities.phones.length > 0) {
+                phonesContainer.innerHTML = entities.phones.map(p =>
+                    `<span class="tag phone">${p}</span>`
+                ).join('');
+            }
+        }
+
+        function renderCharts(entities) {
+            const terms = entities.top_terms || [];
+
+            // Word Cloud
+            const wordCloudContainer = document.getElementById('wordCloudContainer');
+            if (terms.length > 0) {
+                const maxCount = Math.max(...terms.map(t => t[1]));
+                wordCloudContainer.innerHTML = terms.slice(0, 30).map(([word, count]) => {
+                    const size = 12 + (count / maxCount) * 24;
+                    const opacity = 0.5 + (count / maxCount) * 0.5;
+                    return `<span class="word" style="font-size: ${size}px; opacity: ${opacity}">${word}</span>`;
+                }).join('');
+            }
+
+            // Bar Chart
+            const ctx = document.getElementById('termsChart').getContext('2d');
+            const topTerms = terms.slice(0, 10);
+
+            if (termsChart) termsChart.destroy();
+
+            termsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topTerms.map(t => t[0]),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: topTerms.map(t => t[1]),
+                        backgroundColor: 'rgba(0, 212, 255, 0.6)',
+                        borderColor: 'rgba(0, 212, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#888' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: '#e0e0e0' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function clearCurrentAnalysis() {
+            localStorage.removeItem('analysisResult');
+            localStorage.removeItem('analysisQuery');
+            localStorage.removeItem('analysisDocCount');
+            analysisData = null;
+
+            // Reset stats
+            document.getElementById('docCount').textContent = '-';
+            document.getElementById('queryValue').textContent = '-';
+            document.getElementById('charCount').textContent = '-';
+            document.getElementById('dateCount').textContent = '-';
+
+            // Reset content
+            document.getElementById('analysisContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>No analysis available</h3>
+                    <p>Go back to the search page to select documents</p>
+                    <a href="/" class="btn btn-primary" style="margin-top: 20px;">
+                        <i class="fas fa-search"></i> Go to Search
+                    </a>
+                </div>`;
+
+            // Reset entities
+            document.getElementById('datesContainer').innerHTML = '<span class="tag date">No dates found</span>';
+            document.getElementById('emailsContainer').innerHTML = '<span class="tag email">No emails found</span>';
+            document.getElementById('phonesContainer').innerHTML = '<span class="tag phone">No phones found</span>';
+            document.getElementById('wordCloudContainer').innerHTML = '<p style="color: var(--text-muted);">No data</p>';
+
+            // Hide button
+            document.getElementById('btnClearAnalysis').style.display = 'none';
+        }
+
+        function copyAnalysis() {
+            const content = document.getElementById('analysisContent').innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Analysis copied to clipboard!');
+            });
+        }
+
+        // ==================== SAVED ANALYSES ====================
+
+        async function loadSavedAnalyses() {
+            try {
+                const [analysesRes, searchesRes, synthesesRes] = await Promise.all([
+                    fetch('/api/sintesi/all-analyses'),
+                    fetch('/api/searches'),
+                    fetch('/api/sintesi/all')
+                ]);
+
+                const analysesData = await analysesRes.json();
+                const searchesData = await searchesRes.json();
+                const synthesesData = await synthesesRes.json();
+
+                const network = analysesData.network_analyses || [];
+                const deep = analysesData.deep_analyses || [];
+                const searches = searchesData.searches || [];
+                const syntheses = synthesesData.syntheses || [];
+
+                const totalItems = network.length + deep.length + searches.length + syntheses.length;
+
+                renderSavedList(network, deep, searches, syntheses);
+
+                // Show "Delete All" button if there are items
+                document.getElementById('deleteAllBtn').style.display = totalItems > 0 ? 'block' : 'none';
+
+            } catch (error) {
+                console.error('Error loading saved analyses:', error);
+                document.getElementById('savedList').innerHTML =
+                    '<div class="saved-empty" style="color: var(--danger);"><i class="fas fa-exclamation-triangle"></i> Loading error</div>';
+            }
+        }
+
+        function renderSavedList(network, deep, searches, syntheses) {
+            const container = document.getElementById('savedList');
+            let html = '';
+
+            // Network analyses
+            if (network.length > 0) {
+                html += `<div class="saved-group-title"><i class="fas fa-project-diagram"></i> Network Analysis (${network.length})</div>`;
+                network.forEach(a => {
+                    const date = a.date ? new Date(a.date).toLocaleDateString('en-US', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
+                    const title = (a.target_orgs || []).join(', ') || 'Network analysis';
+                    html += `
+                        <div class="saved-item">
+                            <div class="item-info" onclick="loadSavedAnalysis('${a._id}')">
+                                <div class="item-title"><span class="item-type type-network">NET</span>${title}</div>
+                                <div class="item-meta">${date} · ${a.stats?.connections || 0} connections · ${a.stats?.intermediaries || 0} intermediaries</div>
+                            </div>
+                            <button class="btn-delete" onclick="deleteAnalysis('${a._id}', 'analysis')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                });
+            }
+
+            // Deep analyses
+            if (deep.length > 0) {
+                html += `<div class="saved-group-title"><i class="fas fa-microscope"></i> Deep Analyses (${deep.length})</div>`;
+                deep.forEach(a => {
+                    const date = a.date ? new Date(a.date).toLocaleDateString('en-US', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
+                    const docs = (a.doc_ids || []).slice(0, 3).join(', ') + (a.doc_ids?.length > 3 ? '...' : '');
+                    html += `
+                        <div class="saved-item">
+                            <div class="item-info" onclick="loadSavedAnalysis('${a._id}')">
+                                <div class="item-title"><span class="item-type type-deep">DEEP</span>${docs || 'Deep analysis'}</div>
+                                <div class="item-meta">${date} · ${a.doc_ids?.length || 0} documents</div>
+                            </div>
+                            <button class="btn-delete" onclick="deleteAnalysis('${a._id}', 'analysis')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                });
+            }
+
+            // Saved searches
+            if (searches.length > 0) {
+                html += `<div class="saved-group-title"><i class="fas fa-search"></i> Saved Searches (${searches.length})</div>`;
+                searches.forEach(s => {
+                    const date = s.date ? new Date(s.date).toLocaleDateString('en-US', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
+                    html += `
+                        <div class="saved-item">
+                            <div class="item-info">
+                                <div class="item-title"><span class="item-type type-search">SEARCH</span>"${s.query || ''}"</div>
+                                <div class="item-meta">${date} · ${s.total_results || 0} results</div>
+                            </div>
+                            <button class="btn-delete" onclick="deleteAnalysis('${s._id}', 'search')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                });
+            }
+
+            // Syntheses
+            if (syntheses.length > 0) {
+                html += `<div class="saved-group-title"><i class="fas fa-layer-group"></i> Synthesis (${syntheses.length})</div>`;
+                syntheses.forEach(s => {
+                    const date = s.date ? new Date(s.date).toLocaleDateString('en-US', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
+                    html += `
+                        <div class="saved-item">
+                            <div class="item-info">
+                                <div class="item-title"><span class="item-type type-synthesis">SYNTHESIS</span>Synthesis of ${date}</div>
+                                <div class="item-meta">${s.persons?.length || 0} people · ${s.connections_count || 0} connections</div>
+                            </div>
+                            <button class="btn-delete" onclick="deleteAnalysis('${s._id}', 'synthesis')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                });
+            }
+
+            if (!html) {
+                html = '<div class="saved-empty"><i class="fas fa-inbox" style="font-size: 24px; display: block; margin-bottom: 10px; opacity: 0.3;"></i>No saved analyses</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        async function loadSavedAnalysis(id) {
+            try {
+                const response = await fetch(`/api/sintesi/analysis/${id}`);
+                const data = await response.json();
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                // Render in the main panel
+                if (data.result) {
+                    const content = document.getElementById('analysisContent');
+                    content.innerHTML = '<h2 style="color: var(--accent); margin-bottom: 15px;">Network Analysis</h2>';
+                    content.innerHTML += '<pre style="white-space: pre-wrap; font-size: 13px; line-height: 1.6;">' + JSON.stringify(data.result, null, 2) + '</pre>';
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                alert('Loading error: ' + error.message);
+            }
+        }
+
+        async function deleteAnalysis(id, type) {
+            if (!confirm('Delete this analysis?')) return;
+
+            let url;
+            if (type === 'analysis') url = `/api/analyses/${id}`;
+            else if (type === 'search') url = `/api/searches/${id}`;
+            else if (type === 'synthesis') url = `/api/sintesi/delete/${id}`;
+            else return;
+
+            try {
+                const response = await fetch(url, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    loadSavedAnalyses();
+                } else {
+                    alert('Error: ' + (data.error || 'Deletion failed'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function deleteAll() {
+            if (!confirm('Delete ALL saved analyses, searches and syntheses? This action cannot be undone.')) return;
+            if (!confirm('Are you sure? All analyses will be deleted from the database.')) return;
+
+            try {
+                const [analysesRes, searchesRes, synthesesRes] = await Promise.all([
+                    fetch('/api/sintesi/all-analyses'),
+                    fetch('/api/searches'),
+                    fetch('/api/sintesi/all')
+                ]);
+
+                const analysesData = await analysesRes.json();
+                const searchesData = await searchesRes.json();
+                const synthesesData = await synthesesRes.json();
+
+                const allIds = [];
+                (analysesData.network_analyses || []).forEach(a => allIds.push({id: a._id, type: 'analysis'}));
+                (analysesData.deep_analyses || []).forEach(a => allIds.push({id: a._id, type: 'analysis'}));
+                (searchesData.searches || []).forEach(s => allIds.push({id: s._id, type: 'search'}));
+                (synthesesData.syntheses || []).forEach(s => allIds.push({id: s._id, type: 'synthesis'}));
+
+                let deleted = 0;
+                for (const item of allIds) {
+                    try {
+                        await deleteAnalysisSilent(item.id, item.type);
+                        deleted++;
+                    } catch (e) { console.warn('Delete failed:', item.id, e); }
+                }
+
+                alert(`Deleted ${deleted} analyses.`);
+                loadSavedAnalyses();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function deleteAnalysisSilent(id, type) {
+            let url;
+            if (type === 'analysis') url = `/api/analyses/${id}`;
+            else if (type === 'search') url = `/api/searches/${id}`;
+            else if (type === 'synthesis') url = `/api/sintesi/delete/${id}`;
+            else return;
+
+            await fetch(url, { method: 'DELETE' });
+        }
+
+        // Load saved analyses on page load
+        document.addEventListener('DOMContentLoaded', loadSavedAnalyses);
+    </script>
+</body>
+</html>

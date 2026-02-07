@@ -1,0 +1,4044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigation Crew - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-gold: #ffd700;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i { font-size: 28px; color: var(--accent-gold); }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 30px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-gold); }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 212, 255, 0.05));
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .hero h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: var(--accent-gold);
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .agents-preview {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .agent-badge {
+            background: var(--bg-card);
+            padding: 12px 20px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .agent-badge i {
+            font-size: 18px;
+        }
+
+        .agent-badge.director i { color: var(--accent-gold); }
+        .agent-badge.researcher i { color: var(--accent); }
+        .agent-badge.analyst i { color: var(--success); }
+        .agent-badge.banker i { color: #2ed573; }
+        .agent-badge.identity-resolver i { color: #ff6348; }
+        .agent-badge.cipher i { color: #7bed9f; }
+        .agent-badge.interrogator i { color: var(--warning); }
+        .agent-badge.synthesizer i { color: #a855f7; }
+
+        .input-section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .input-section h3 {
+            margin-bottom: 20px;
+            color: var(--accent-gold);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-row textarea {
+            flex: 1;
+            padding: 15px 20px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 16px;
+            resize: none;
+            min-height: 80px;
+        }
+
+        .input-row textarea:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-gold), #ffa500);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .examples {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example {
+            background: var(--bg-input);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .example:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-mode-label {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .progress-mode-label.mode-new {
+            display: flex;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: var(--accent-gold);
+        }
+
+        .progress-mode-label.mode-continue {
+            display: flex;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: var(--accent);
+        }
+
+        .progress-mode-label .mode-objective {
+            font-weight: 400;
+            color: var(--text);
+            margin-left: 5px;
+            max-width: 500px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .progress-header .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--bg-input);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .progress-text {
+            font-size: 16px;
+            color: var(--accent-gold);
+        }
+
+        .agents-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .agent-status {
+            background: var(--bg-input);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .agent-status i {
+            font-size: 20px;
+            width: 30px;
+        }
+
+        .agent-status.waiting i { color: var(--text-muted); }
+        .agent-status.working i { color: var(--accent-gold); animation: pulse 1s infinite; }
+        .agent-status.done i { color: var(--success); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: var(--bg-input);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .tab-btn i {
+            font-size: 16px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .result-card h3 {
+            color: var(--accent-gold);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-card h3 i {
+            font-size: 20px;
+        }
+
+        /* People cards */
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .person-card {
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .person-card.high { border-left-color: #ff4757; }
+        .person-card.medium { border-left-color: #ffa502; }
+        .person-card.low { border-left-color: #2ed573; }
+
+        .person-card .name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .person-card .role {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .person-card .relevance {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .person-card.high .relevance { background: rgba(255, 71, 87, 0.2); color: #ff4757; }
+        .person-card.medium .relevance { background: rgba(255, 165, 2, 0.2); color: #ffa502; }
+        .person-card.low .relevance { background: rgba(46, 213, 115, 0.2); color: #2ed573; }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent-gold);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 15px 20px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+
+        .timeline-item .date {
+            color: var(--accent-gold);
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .timeline-item .event {
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        /* Evidence cards */
+        .evidence-card {
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .evidence-card.critical { border-left-color: #ff4757; }
+        .evidence-card.high { border-left-color: #ffa502; }
+
+        .evidence-card .doc-id {
+            font-family: monospace;
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .evidence-card .content {
+            color: var(--text);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* Sub-tabs for report */
+        .sub-tabs-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sub-tab-btn {
+            padding: 10px 18px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sub-tab-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--text);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .sub-tab-btn.active {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .sub-tab-btn i {
+            font-size: 14px;
+        }
+
+        .sub-tab-content {
+            display: none;
+            background: var(--bg-input);
+            border-radius: 10px;
+            padding: 25px;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .sub-tab-content.active {
+            display: block;
+        }
+
+        .sub-tab-content ul, .sub-tab-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .sub-tab-content li {
+            margin-bottom: 8px;
+        }
+
+        .sub-tab-content strong {
+            color: var(--accent);
+        }
+
+        .sub-tab-content p {
+            margin-bottom: 15px;
+        }
+
+        .evidence-card .importance {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: var(--bg-input);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .report-content {
+            background: var(--bg-input);
+            padding: 25px;
+            border-radius: 10px;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .report-content h2 {
+            color: var(--accent-gold);
+            margin: 25px 0 15px;
+            font-size: 18px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 8px;
+        }
+
+        .report-content h2:first-child {
+            margin-top: 0;
+        }
+
+        .report-content ul, .report-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .report-content li {
+            margin-bottom: 8px;
+        }
+
+        .report-content strong {
+            color: var(--accent);
+        }
+
+        .report-content code {
+            background: var(--bg-dark);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .follow-up-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .follow-up-item {
+            background: var(--bg-input);
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .follow-up-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid var(--accent-gold);
+        }
+
+        .follow-up-item i {
+            color: var(--accent-gold);
+        }
+
+        .search-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .search-tag {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-tag:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        /* Continuation Section */
+        .continue-section {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(168, 85, 247, 0.1));
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .continue-section h4 {
+            color: var(--accent);
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+
+        .continue-section p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .continue-section textarea {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .continue-section textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+        }
+
+        .continue-section textarea.flash {
+            animation: flashBorder 0.6s ease-out;
+        }
+
+        @keyframes flashBorder {
+            0% { border-color: #a855f7; box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+            100% { border-color: rgba(0, 212, 255, 0.3); box-shadow: none; }
+        }
+
+        .btn-continue {
+            margin-top: 12px;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-continue:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .continuation-history {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .continuation-history h5 {
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .history-item i {
+            color: var(--accent);
+            font-size: 11px;
+        }
+
+        .history-item .history-date {
+            color: var(--text-muted);
+            font-size: 11px;
+            min-width: 80px;
+        }
+
+        .history-item .history-objective {
+            flex: 1;
+            color: var(--text);
+        }
+
+        .history-item .history-docs {
+            color: var(--accent-gold);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .follow-up-item .continue-badge {
+            display: inline-block;
+            font-size: 9px;
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .connections-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .connection-item {
+            background: var(--bg-input);
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connection-item .from {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .connection-item .arrow {
+            color: var(--accent-gold);
+        }
+
+        .connection-item .to {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .connection-item .type {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        /* Network Graph */
+        .graph-container {
+            position: relative;
+            width: 100%;
+        }
+
+        #networkGraph {
+            width: 100%;
+            height: 500px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        #networkGraph.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            border-radius: 0;
+        }
+
+        .graph-controls.fullscreen-mode {
+            position: fixed;
+            z-index: 10000;
+        }
+
+        .graph-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .graph-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--bg-card);
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .graph-controls button:hover {
+            background: var(--accent-gold);
+            color: #000;
+            border-color: var(--accent-gold);
+        }
+
+        .graph-controls .separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 4px 0;
+        }
+
+        /* Saved Investigations */
+        .saved-section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .saved-section h3 {
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .saved-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .saved-item {
+            background: var(--bg-input);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .saved-item:hover {
+            border-color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .saved-item .date {
+            color: var(--text-muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .saved-item .objective {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .saved-item .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .saved-item .stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .saved-item .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .saved-item .delete-btn:hover {
+            opacity: 1;
+        }
+
+        .saved-item input[type="checkbox"] {
+            accent-color: var(--accent-gold);
+        }
+
+        .saved-item input[type="checkbox"]:checked + .date,
+        .saved-item input[type="checkbox"]:checked ~ .objective {
+            color: var(--accent-gold);
+        }
+
+        .no-saved {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-users-cog"></i>
+            <div>
+                <h1>Investigation Crew</h1>
+                <span>AI Investigative Agents Team</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h2><i class="fas fa-shield-alt"></i> Investigation Crew</h2>
+            <p>
+                A team of 8 specialized AI agents that collaborate to investigate the Epstein documents.
+                Give an objective and the team will plan, search, analyze, and synthesize the findings.
+            </p>
+
+            <div class="agents-preview">
+                <div class="agent-badge director">
+                    <i class="fas fa-chess-king"></i>
+                    <span>Director</span>
+                </div>
+                <div class="agent-badge researcher">
+                    <i class="fas fa-search"></i>
+                    <span>Researcher</span>
+                </div>
+                <div class="agent-badge analyst">
+                    <i class="fas fa-brain"></i>
+                    <span>Analyst</span>
+                </div>
+                <div class="agent-badge banker">
+                    <i class="fas fa-university"></i>
+                    <span>Banker</span>
+                </div>
+                <div class="agent-badge identity-resolver">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>ID Resolver</span>
+                </div>
+                <div class="agent-badge cipher">
+                    <i class="fas fa-key"></i>
+                    <span>Decoder</span>
+                </div>
+                <div class="agent-badge interrogator">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Interrogator</span>
+                </div>
+                <div class="agent-badge synthesizer">
+                    <i class="fas fa-file-signature"></i>
+                    <span>Synthesizer</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Investigations -->
+        <div class="saved-section" id="savedSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;"><i class="fas fa-history"></i> Saved Investigations</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="selectedCount" style="color: var(--text-muted); font-size: 13px;">0 selected</span>
+                    <button class="btn btn-primary" id="metaBtn" onclick="startMetaInvestigation()" style="padding: 10px 20px; font-size: 14px;" disabled>
+                        <i class="fas fa-balance-scale"></i> Compare Selected
+                    </button>
+                    <a href="/merge" class="btn" style="padding: 10px 20px; font-size: 14px; background: linear-gradient(135deg, #a855f7, #c084fc); color: white; text-decoration: none; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-code-merge"></i> Advanced Merge
+                    </a>
+                    <button class="btn" onclick="deleteAllInvestigations()" style="padding: 10px 20px; font-size: 14px; background: linear-gradient(135deg, #dc2626, #ef4444); color: white; border-radius: 8px; display: flex; align-items: center; gap: 8px;" title="Delete all investigations, analyses, people, searches and RAG data">
+                        <i class="fas fa-trash-alt"></i> Delete All
+                    </button>
+                </div>
+            </div>
+            <div class="saved-list" id="savedList">
+                <div class="no-saved">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Meta Investigation Progress -->
+        <div class="progress-section" id="metaProgressSection">
+            <div class="progress-header">
+                <div class="spinner"></div>
+                <span class="progress-text" id="metaProgressText">Starting meta-investigation...</span>
+            </div>
+            <div class="agents-status">
+                <div class="agent-status waiting" id="meta-status-analyze">
+                    <i class="fas fa-search-plus"></i>
+                    <span>Comparative analysis</span>
+                </div>
+                <div class="agent-status waiting" id="meta-status-resolve">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Contradiction resolution</span>
+                </div>
+                <div class="agent-status waiting" id="meta-status-verdict">
+                    <i class="fas fa-gavel"></i>
+                    <span>Final verdict</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta Investigation Results -->
+        <div class="results-section" id="metaResultsSection">
+            <div class="result-card">
+                <h3><i class="fas fa-balance-scale"></i> Meta-Investigation Results</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="number" id="metaStatInv">0</div>
+                        <div class="label">Investigations Analyzed</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="metaStatContradictions">0</div>
+                        <div class="label">Contradictions Found</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="metaStatCommon">0</div>
+                        <div class="label">Common Points</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contradictions -->
+            <div class="result-card">
+                <h3><i class="fas fa-exclamation-triangle" style="color: #ff4757;"></i> Detected Contradictions</h3>
+                <div id="contradictionsList"></div>
+            </div>
+
+            <!-- Document Analysis -->
+            <div class="result-card" id="docAnalysesCard" style="display: none;">
+                <h3><i class="fas fa-file-search" style="color: #2ed573;"></i> Key Document Analysis</h3>
+                <div id="docAnalysesList"></div>
+            </div>
+
+            <!-- Verdict -->
+            <div class="result-card">
+                <h3><i class="fas fa-gavel"></i> Final Verdict</h3>
+                <div class="report-content" id="verdictContent"></div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <h3><i class="fas fa-crosshairs"></i> Investigation Objective</h3>
+            <div class="input-row">
+                <textarea id="objectiveInput" placeholder="Describe what you want to investigate... E.g.: 'Investigate the connections between Epstein and Ukraine, including oligarchs, human trafficking, and political interests'"></textarea>
+                <button class="btn btn-primary" id="startBtn" onclick="startInvestigation()">
+                    <i class="fas fa-rocket"></i> Start Investigation
+                </button>
+            </div>
+            <div class="examples">
+                <span class="example" onclick="setObjective('Investigate the connections between Epstein and Ukraine')">Ukraine Connections</span>
+                <span class="example" onclick="setObjective('Analyze the trafficking of girls from Eastern Europe')">Eastern Europe Trafficking</span>
+                <span class="example" onclick="setObjective('Map Epstein\\'s financial network and suspicious payments')">Financial Network</span>
+                <span class="example" onclick="setObjective('Investigate relationships with politicians and power figures')">Political Connections</span>
+                <span class="example" onclick="setObjective('Analyze the role of Bill Gates and Boris Nikolic')">Gates and Nikolic</span>
+            </div>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <div class="progress-mode-label" id="progressModeLabel"></div>
+            <div class="progress-header">
+                <div class="spinner"></div>
+                <span class="progress-text" id="progressText">Initializing team...</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <div class="progress-meta">
+                <span id="progressStep">Step 0/5</span>
+                <span id="progressTimer">0:00</span>
+            </div>
+            <div class="agents-status">
+                <div class="agent-status waiting" id="status-director">
+                    <i class="fas fa-chess-king"></i>
+                    <span>Director: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-researcher">
+                    <i class="fas fa-search"></i>
+                    <span>Researcher: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-analyst">
+                    <i class="fas fa-brain"></i>
+                    <span>Analyst: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-banker">
+                    <i class="fas fa-university"></i>
+                    <span>Banker: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-identity-resolver">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>ID Resolver: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-cipher">
+                    <i class="fas fa-key"></i>
+                    <span>Decoder: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-interrogator">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Interrogator: Waiting</span>
+                </div>
+                <div class="agent-status waiting" id="status-synthesizer">
+                    <i class="fas fa-file-signature"></i>
+                    <span>Synthesizer: Waiting</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <!-- Stats Bar -->
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-box">
+                    <div class="number" id="statDocs">0</div>
+                    <div class="label">Documents Analyzed</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="statPeople">0</div>
+                    <div class="label">People Identified</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="statConnections">0</div>
+                    <div class="label">Connections Found</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="statQuestions">0</div>
+                    <div class="label">Questions Generated</div>
+                </div>
+            </div>
+
+            <!-- Tabs Container -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="showTab('sommario')">
+                        <i class="fas fa-file-alt"></i> Summary
+                    </button>
+                    <button class="tab-btn" onclick="showTab('grafico')">
+                        <i class="fas fa-project-diagram"></i> Graph
+                    </button>
+                    <button class="tab-btn" onclick="showTab('persone')">
+                        <i class="fas fa-users"></i> People <span class="tab-badge" id="badge-persone"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('connessioni')">
+                        <i class="fas fa-link"></i> Connections <span class="tab-badge" id="badge-connessioni"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('prove')">
+                        <i class="fas fa-gavel"></i> Evidence <span class="tab-badge" id="badge-prove"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('timeline')">
+                        <i class="fas fa-clock"></i> Timeline <span class="tab-badge" id="badge-timeline"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('finanza')">
+                        <i class="fas fa-university"></i> Finance <span class="tab-badge" id="badge-finanza"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('identita')">
+                        <i class="fas fa-fingerprint"></i> Identities <span class="tab-badge" id="badge-identita"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('codici')">
+                        <i class="fas fa-key"></i> Codes <span class="tab-badge" id="badge-codici"></span>
+                    </button>
+                    <button class="tab-btn" onclick="showTab('prossimi')">
+                        <i class="fas fa-lightbulb"></i> Next Steps
+                    </button>
+                </div>
+
+                <!-- Tab: Summary -->
+                <div class="tab-content active" id="tab-sommario">
+                    <div id="citationBadge" style="display: none; margin-bottom: 15px;"></div>
+                    <div class="report-content" id="reportContent">
+                        <!-- Report will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Tab: Graph -->
+                <div class="tab-content" id="tab-grafico">
+                    <div class="graph-container">
+                        <div class="graph-controls">
+                            <button onclick="zoomGraph(1.3)" title="Zoom In"><i class="fas fa-plus"></i></button>
+                            <button onclick="zoomGraph(0.7)" title="Zoom Out"><i class="fas fa-minus"></i></button>
+                            <div class="separator"></div>
+                            <button onclick="fitGraph()" title="Fit to view"><i class="fas fa-expand-arrows-alt"></i></button>
+                            <button onclick="toggleFullscreen()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                        </div>
+                        <div id="networkGraph"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: People -->
+                <div class="tab-content" id="tab-persone">
+                    <div class="people-grid" id="peopleGrid">
+                        <!-- People cards will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Tab: Connections -->
+                <div class="tab-content" id="tab-connessioni">
+                    <div class="connections-list" id="connectionsList">
+                        <!-- Connections will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Tab: Evidence -->
+                <div class="tab-content" id="tab-prove">
+                    <div id="evidenceList">
+                        <!-- Evidence cards will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Tab: Timeline -->
+                <div class="tab-content" id="tab-timeline">
+                    <div class="timeline" id="timelineList">
+                        <!-- Timeline items will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Tab: Finance -->
+                <div class="tab-content" id="tab-finanza">
+                    <div id="financeContent">
+                        <p style="color: var(--text-muted);">No financial data available</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Identities -->
+                <div class="tab-content" id="tab-identita">
+                    <div id="identitiesContent">
+                        <p style="color: var(--text-muted);">No identity data available</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Codes -->
+                <div class="tab-content" id="tab-codici">
+                    <div id="cipherContent">
+                        <p style="color: var(--text-muted);">No coded language data available</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Next Steps -->
+                <div class="tab-content" id="tab-prossimi">
+                    <h4 style="color: var(--accent-gold); margin-bottom: 15px;"><i class="fas fa-question-circle"></i> Questions to Investigate</h4>
+                    <div class="follow-up-list" id="followUpList">
+                        <!-- Follow-up items will be inserted here -->
+                    </div>
+
+                    <h4 style="color: var(--accent-gold); margin: 25px 0 15px;"><i class="fas fa-search-plus"></i> Suggested Searches</h4>
+                    <div class="search-tags" id="searchTags">
+                        <!-- Search tags will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Generation Bar -->
+            <div id="reportBar" style="display: none; padding: 20px 25px; margin-top: 10px; background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(255,215,0,0.08)); border: 1px solid rgba(0,212,255,0.2); border-radius: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-file-export" style="color: var(--accent-gold); font-size: 18px;"></i>
+                        <span style="font-weight: 600; color: var(--text);">Export Investigation Report</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="generateReport()" style="padding: 10px 22px; background: linear-gradient(135deg, #ffd700, #ffaa00); border: none; color: #000; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(255,215,0,0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                            <i class="fas fa-print"></i> Full Report
+                        </button>
+                        <button onclick="downloadReportMarkdown()" style="padding: 10px 22px; background: rgba(0,212,255,0.15); border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.3s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(0,212,255,0.3)'" onmouseout="this.style.background='rgba(0,212,255,0.15)'">
+                            <i class="fas fa-file-alt"></i> Markdown
+                        </button>
+                        <button onclick="downloadReportJSON()" style="padding: 10px 22px; background: rgba(123,237,159,0.15); border: 1px solid #7bed9f; color: #7bed9f; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.3s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(123,237,159,0.3)'" onmouseout="this.style.background='rgba(123,237,159,0.15)'">
+                            <i class="fas fa-file-code"></i> JSON
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Continue Investigation -->
+            <div class="continue-section" id="continueSection" style="display: none;">
+                <h4><i class="fas fa-plus-circle"></i> Continue Investigation</h4>
+                <p>Add a new research objective. The results will be integrated into the current investigation.</p>
+                <textarea id="continueObjectiveInput" placeholder="E.g.: Investigate Boris Nikolic's financial connections, flights to Kiev in 2018-2019, Victor Pinchuk's role..."></textarea>
+                <button class="btn-continue" id="continueBtn" onclick="continueInvestigation()">
+                    <i class="fas fa-search-plus"></i> Continue Investigation
+                </button>
+                <div class="continuation-history" id="continuationHistory" style="display: none;">
+                    <h5><i class="fas fa-history"></i> Investigation History</h5>
+                    <div id="historyList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentJobId = null;
+        let pollInterval = null;
+        let currentInvestigationId = null;  // To integrate deep dives
+        let currentResultData = null;  // Stores full investigation result for report generation
+        let continuationJobId = null;
+        let continuationPollInterval = null;
+        let progressTimerInterval = null;
+        let progressStartTime = null;
+        let currentProgressStep = 0;
+
+        function startProgressTimer() {
+            progressStartTime = Date.now();
+            currentProgressStep = 0;
+            document.getElementById('progressBarFill').style.width = '0%';
+            document.getElementById('progressStep').textContent = 'Step 0/7';
+            document.getElementById('progressTimer').textContent = '0:00';
+            if (progressTimerInterval) clearInterval(progressTimerInterval);
+            progressTimerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - progressStartTime) / 1000);
+                const min = Math.floor(elapsed / 60);
+                const sec = elapsed % 60;
+                document.getElementById('progressTimer').textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopProgressTimer() {
+            if (progressTimerInterval) {
+                clearInterval(progressTimerInterval);
+                progressTimerInterval = null;
+            }
+            document.getElementById('progressBarFill').style.width = '100%';
+            document.getElementById('progressStep').textContent = 'Step 7/7';
+        }
+
+        function setProgressMode(mode, objective) {
+            const label = document.getElementById('progressModeLabel');
+            label.className = 'progress-mode-label';
+            if (mode === 'new') {
+                label.className = 'progress-mode-label mode-new';
+                label.innerHTML = `<i class="fas fa-rocket"></i> NEW INVESTIGATION <span class="mode-objective">${objective || ''}</span>`;
+            } else if (mode === 'continue') {
+                label.className = 'progress-mode-label mode-continue';
+                label.innerHTML = `<i class="fas fa-plus-circle"></i> INVESTIGATION CONTINUATION <span class="mode-objective">${objective || ''}</span>`;
+            }
+        }
+
+        function updateProgressBar(progress) {
+            const lower = progress.toLowerCase();
+            let step = 0;
+            if (lower.includes('direttore') || lower.includes('director')) step = 1;
+            else if (lower.includes('ricercator') || lower.includes('researcher')) step = 2;
+            else if (lower.includes('analista') || lower.includes('analyst')) step = 3;
+            else if (lower.includes('banchiere') || lower.includes('risolutore') || lower.includes('parallela') || lower.includes('banker') || lower.includes('resolver') || lower.includes('parallel')) step = 4;
+            else if (lower.includes('decodificator') || lower.includes('decoder')) step = 5;
+            else if (lower.includes('interrogator')) step = 6;
+            else if (lower.includes('sintetizzator') || lower.includes('synthesizer')) step = 7;
+            else if (lower.includes('unione') || lower.includes('riscrittura') || lower.includes('merging') || lower.includes('rewriting')) step = 7;
+            else if (lower.includes('completat') || lower.includes('completed')) step = 7;
+
+            if (step > currentProgressStep) {
+                currentProgressStep = step;
+                const pct = Math.round((step / 7) * 100);
+                document.getElementById('progressBarFill').style.width = pct + '%';
+                document.getElementById('progressStep').textContent = `Step ${step}/7`;
+            }
+        }
+
+        function setObjective(text) {
+            document.getElementById('objectiveInput').value = text;
+        }
+
+        function setContinueObjective(text) {
+            const textarea = document.getElementById('continueObjectiveInput');
+            textarea.value = text;
+            // Scroll to continuation section
+            document.getElementById('continueSection').scrollIntoView({ behavior: 'smooth' });
+            // Flash effect
+            textarea.classList.add('flash');
+            setTimeout(() => textarea.classList.remove('flash'), 700);
+            textarea.focus();
+        }
+
+        async function continueInvestigation() {
+            const objective = document.getElementById('continueObjectiveInput').value.trim();
+            if (!objective) {
+                alert('Enter an objective to continue the investigation');
+                return;
+            }
+            if (!currentInvestigationId) {
+                alert('No active investigation to continue');
+                return;
+            }
+
+            // Show progress section and reset agent status
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('continueBtn').disabled = true;
+            resetAgentStatus();
+            setProgressMode('continue', objective);
+            startProgressTimer();
+            // Scroll to progress
+            document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch(`/api/investigation/${currentInvestigationId}/continue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ objective })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                continuationJobId = data.job_id;
+                console.log('[Continuation] Job started:', continuationJobId);
+
+                // Poll every 2 seconds
+                continuationPollInterval = setInterval(pollContinuationStatus, 2000);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('progressSection').classList.remove('active');
+                document.getElementById('continueBtn').disabled = false;
+                stopProgressTimer();
+            }
+        }
+
+        async function pollContinuationStatus() {
+            if (!continuationJobId) return;
+
+            try {
+                const response = await fetch(`/api/investigation/continue/status/${continuationJobId}`);
+                const data = await response.json();
+
+                console.log('[Continuation Poll]', data.status, data.progress);
+
+                // Update progress
+                document.getElementById('progressText').textContent = data.progress || 'Processing...';
+                updateAgentStatus(data.progress);
+                updateProgressBar(data.progress || '');
+
+                if (data.status === 'completed') {
+                    clearInterval(continuationPollInterval);
+                    continuationPollInterval = null;
+                    continuationJobId = null;
+                    stopProgressTimer();
+
+                    document.getElementById('progressSection').classList.remove('active');
+                    document.getElementById('continueBtn').disabled = false;
+                    document.getElementById('continueObjectiveInput').value = '';
+
+                    renderResults(data.result);
+
+                } else if (data.status === 'error') {
+                    clearInterval(continuationPollInterval);
+                    continuationPollInterval = null;
+                    continuationJobId = null;
+                    stopProgressTimer();
+
+                    document.getElementById('progressSection').classList.remove('active');
+                    document.getElementById('continueBtn').disabled = false;
+                    alert('Error: ' + data.error);
+                }
+
+            } catch (error) {
+                console.error('[Continuation Poll] Error:', error);
+            }
+        }
+
+        function renderContinuationHistory(history) {
+            if (!history || history.length === 0) {
+                document.getElementById('continuationHistory').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('continuationHistory').style.display = 'block';
+
+            const html = history.map(h => {
+                const date = h.date ? new Date(h.date).toLocaleDateString('en-US', {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                }) : '';
+                return `
+                    <div class="history-item">
+                        <i class="fas fa-search"></i>
+                        <span class="history-date">${date}</span>
+                        <span class="history-objective">${h.objective || ''}</span>
+                        <span class="history-docs"><i class="fas fa-file"></i> ${h.documents_found || 0}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('historyList').innerHTML = html;
+        }
+
+        async function startInvestigation() {
+            const objective = document.getElementById('objectiveInput').value.trim();
+            if (!objective) {
+                alert('Enter an objective for the investigation');
+                return;
+            }
+
+            // Reset UI
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('startBtn').disabled = true;
+            resetAgentStatus();
+            setProgressMode('new', objective);
+            startProgressTimer();
+
+            try {
+                const response = await fetch('/api/investigation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ objective })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                currentJobId = data.job_id;
+                console.log('[Investigation] Job started:', currentJobId);
+
+                // Poll every 2 seconds
+                pollInterval = setInterval(pollStatus, 2000);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('progressSection').classList.remove('active');
+                document.getElementById('startBtn').disabled = false;
+                stopProgressTimer();
+            }
+        }
+
+        async function pollStatus() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/api/investigation/status/${currentJobId}`);
+                const data = await response.json();
+
+                console.log('[Investigation Poll]', data.status, data.progress);
+
+                // Update progress
+                document.getElementById('progressText').textContent = data.progress || 'Processing...';
+                updateAgentStatus(data.progress);
+                updateProgressBar(data.progress || '');
+
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    stopProgressTimer();
+
+                    document.getElementById('progressSection').classList.remove('active');
+                    document.getElementById('startBtn').disabled = false;
+
+                    renderResults(data.result);
+
+                } else if (data.status === 'error') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    stopProgressTimer();
+
+                    document.getElementById('progressSection').classList.remove('active');
+                    document.getElementById('startBtn').disabled = false;
+                    alert('Error: ' + data.error);
+                }
+
+            } catch (error) {
+                console.error('[Investigation Poll] Error:', error);
+            }
+        }
+
+        function resetAgentStatus() {
+            const agentNames = {
+                'director': 'Director',
+                'researcher': 'Researcher',
+                'analyst': 'Analyst',
+                'banker': 'Banker',
+                'identity-resolver': 'ID Resolver',
+                'cipher': 'Decoder',
+                'interrogator': 'Interrogator',
+                'synthesizer': 'Synthesizer'
+            };
+            Object.entries(agentNames).forEach(([id, name]) => {
+                const el = document.getElementById(`status-${id}`);
+                if (el) {
+                    el.className = 'agent-status waiting';
+                    el.querySelector('span').textContent = name + ': Waiting';
+                }
+            });
+        }
+
+        function updateAgentStatus(progress) {
+            const progressLower = progress.toLowerCase();
+
+            if (progressLower.includes('direttore') || progressLower.includes('director')) {
+                setAgentWorking('director', progress);
+            } else if (progressLower.includes('ricercator') || progressLower.includes('researcher')) {
+                setAgentDone('director');
+                setAgentWorking('researcher', progress);
+            } else if (progressLower.includes('analista') || progressLower.includes('analyst')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentWorking('analyst', progress);
+            } else if (progressLower.includes('banchiere') || progressLower.includes('banker')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentDone('analyst');
+                setAgentWorking('banker', progress);
+                setAgentWorking('identity-resolver', 'Parallel execution...');
+            } else if (progressLower.includes('risolutore') || progressLower.includes('resolver')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentDone('analyst');
+                setAgentWorking('banker', 'Parallel execution...');
+                setAgentWorking('identity-resolver', progress);
+            } else if (progressLower.includes('parallela') || progressLower.includes('parallel')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentDone('analyst');
+                setAgentWorking('banker', 'Financial analysis...');
+                setAgentWorking('identity-resolver', 'Alias analysis...');
+            } else if (progressLower.includes('decodificator') || progressLower.includes('decoder')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentDone('analyst');
+                setAgentDone('banker');
+                setAgentDone('identity-resolver');
+                setAgentWorking('cipher', progress);
+            } else if (progressLower.includes('interrogator')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentDone('analyst');
+                setAgentDone('banker');
+                setAgentDone('identity-resolver');
+                setAgentDone('cipher');
+                setAgentWorking('interrogator', progress);
+            } else if (progressLower.includes('sintetizzator') || progressLower.includes('synthesizer')) {
+                setAgentDone('director');
+                setAgentDone('researcher');
+                setAgentDone('analyst');
+                setAgentDone('banker');
+                setAgentDone('identity-resolver');
+                setAgentDone('cipher');
+                setAgentDone('interrogator');
+                setAgentWorking('synthesizer', progress);
+            } else if (progressLower.includes('completat') || progressLower.includes('completed')) {
+                ['director', 'researcher', 'analyst', 'banker', 'identity-resolver', 'cipher', 'interrogator', 'synthesizer'].forEach(setAgentDone);
+            }
+        }
+
+        function setAgentWorking(agent, text) {
+            const el = document.getElementById(`status-${agent}`);
+            el.className = 'agent-status working';
+            el.querySelector('span').textContent = text.split(':').pop().trim().substring(0, 30) + '...';
+        }
+
+        function setAgentDone(agent) {
+            const el = document.getElementById(`status-${agent}`);
+            el.className = 'agent-status done';
+            el.querySelector('span').textContent = 'Completed';
+        }
+
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            // Re-render network if switching to grafico tab
+            if (tabName === 'grafico' && window.currentNetworkData) {
+                setTimeout(() => renderNetwork(window.currentNetworkData), 100);
+            }
+            // Re-render finance network if switching to finanza tab
+            if (tabName === 'finanza' && window.currentBankingData) {
+                setTimeout(() => renderFinanceNetwork(window.currentBankingData), 100);
+            }
+        }
+
+        function renderCitationBadge(citation) {
+            const badge = document.getElementById('citationBadge');
+            if (!badge) return;
+            if (!citation || !citation.total_citations) {
+                badge.style.display = 'none';
+                return;
+            }
+
+            const total = citation.total_citations;
+            const verified = citation.verified;
+            const unverified = citation.unverified;
+            const pct = Math.round((verified / total) * 100);
+
+            let color, bgColor, borderColor, icon;
+            if (pct >= 80) {
+                color = '#2ed573'; bgColor = 'rgba(46,213,115,0.1)'; borderColor = 'rgba(46,213,115,0.3)'; icon = 'fa-check-circle';
+            } else if (pct >= 50) {
+                color = '#ffa502'; bgColor = 'rgba(255,165,2,0.1)'; borderColor = 'rgba(255,165,2,0.3)'; icon = 'fa-exclamation-triangle';
+            } else {
+                color = '#ff4757'; bgColor = 'rgba(255,71,87,0.1)'; borderColor = 'rgba(255,71,87,0.3)'; icon = 'fa-times-circle';
+            }
+
+            const detailRows = (citation.details || []).map(d => {
+                const sIcon = d.status === 'verified'
+                    ? '<i class="fas fa-check" style="color:#2ed573"></i>'
+                    : '<i class="fas fa-times" style="color:#ff4757"></i>';
+                const src = d.source ? `<span style="color:#999;font-size:11px;margin-left:6px">(${d.source})</span>` : '';
+                return `<div style="padding:4px 0;display:flex;align-items:center;gap:8px;font-family:monospace;font-size:13px;">${sIcon} ${d.doc_id}${src}</div>`;
+            }).join('');
+
+            badge.style.display = 'block';
+            badge.innerHTML = `
+                <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:10px;padding:12px 18px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="this.parentElement.querySelector('.citation-details').style.display = this.parentElement.querySelector('.citation-details').style.display === 'none' ? 'block' : 'none'">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <i class="fas ${icon}" style="color:${color};font-size:18px;"></i>
+                            <span style="font-weight:600;color:${color};font-size:14px;">${verified}/${total} EFTA citations verified (${pct}%)</span>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color:#999;font-size:12px;"></i>
+                    </div>
+                    <div class="citation-details" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${borderColor};max-height:300px;overflow-y:auto;">
+                        ${detailRows || '<div style="color:#999;">No details available</div>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResults(result) {
+            if (!result || !result.success) {
+                alert('Investigation failed: ' + (result?.error || 'Unknown error'));
+                return;
+            }
+
+            // Store full result for report generation (ensure objective is set)
+            if (!result.objective) {
+                result.objective = document.getElementById('objectiveInput')?.value || 'Investigation';
+            }
+            currentResultData = result;
+
+            // Save investigation_id for deep dives
+            if (result.investigation_id) {
+                currentInvestigationId = result.investigation_id;
+            }
+
+            document.getElementById('resultsSection').classList.add('active');
+
+            // Show continuation section if there's an investigation_id
+            if (currentInvestigationId) {
+                document.getElementById('continueSection').style.display = 'block';
+            } else {
+                document.getElementById('continueSection').style.display = 'none';
+            }
+
+            // Render continuation history if present
+            renderContinuationHistory(result.continuation_history || []);
+
+            // Stats
+            document.getElementById('statDocs').textContent = result.documents_found || 0;
+            document.getElementById('statPeople').textContent = result.analysis?.key_people?.length || 0;
+            document.getElementById('statConnections').textContent = result.analysis?.connections?.length || 0;
+            document.getElementById('statQuestions').textContent = result.follow_up?.critical_questions?.length || 0;
+
+            // Tab badge counters
+            const setBadge = (id, count) => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = count > 0 ? count : ''; el.style.display = count > 0 ? '' : 'none'; }
+            };
+            setBadge('badge-persone', result.analysis?.key_people?.length || 0);
+            setBadge('badge-connessioni', result.analysis?.connections?.length || 0);
+            setBadge('badge-prove', result.analysis?.significant_evidence?.length || 0);
+            setBadge('badge-timeline', result.analysis?.timeline?.length || 0);
+            setBadge('badge-finanza', (result.banking?.transactions?.length || 0) + (result.banking?.banks?.length || 0));
+            setBadge('badge-identita', result.identities?.identities?.length || 0);
+            setBadge('badge-codici', result.cipher?.coded_passages?.length || 0);
+
+            // Tab: Summary (Report)
+            const reportHtml = formatReport(result.report || 'No report generated');
+            document.getElementById('reportContent').innerHTML = reportHtml;
+
+            // Citation verification badge
+            renderCitationBadge(result.citation_verification);
+
+            // Tab: Graph (Network)
+            const networkData = result.network_data || buildNetworkData(result.analysis);
+            window.currentNetworkData = networkData;
+            renderNetwork(networkData);
+
+            // Tab: People
+            const people = result.analysis?.key_people || [];
+            const peopleHtml = people.map(p => {
+                const relevance = p.relevance || 'medium';
+                const name = p.name || 'Unknown';
+                return `
+                    <div class="person-card ${relevance}">
+                        <div class="name">${name}</div>
+                        <div class="role">${p.role || 'Role not specified'}</div>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                            <span class="relevance">${relevance}</span>
+                            <a href="https://jmail.world/search?q=${encodeURIComponent(name)}" target="_blank"
+                               style="font-size: 11px; color: #ff6b6b; text-decoration: none;" title="Search on Jmail">
+                                <i class="fas fa-envelope"></i> Jmail
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('peopleGrid').innerHTML = peopleHtml || '<p style="color: var(--text-muted);">No people identified</p>';
+
+            // Tab: Connections
+            const connections = result.analysis?.connections || [];
+            const connHtml = connections.map(c => {
+                const searchTerm = `${c.from || ''} ${c.to || ''}`.trim();
+                return `
+                <div class="connection-item">
+                    <span class="from">${c.from || '?'}</span>
+                    <span class="arrow"><i class="fas fa-arrow-right"></i></span>
+                    <span class="to">${c.to || '?'}</span>
+                    <span class="type">${c.type || ''}</span>
+                    <a href="https://jmail.world/search?q=${encodeURIComponent(searchTerm)}" target="_blank"
+                       style="margin-left: auto; font-size: 11px; color: #ff6b6b; text-decoration: none;" title="Search on Jmail">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>`;
+            }).join('');
+            document.getElementById('connectionsList').innerHTML = connHtml || '<p style="color: var(--text-muted);">No connections found</p>';
+
+            // Tab: Evidence
+            const evidence = result.analysis?.significant_evidence || [];
+            const evidenceHtml = evidence.map(e => {
+                const importance = (e.importance || '').toLowerCase();
+                const cssClass = importance.includes('critic') ? 'critical' : importance.includes('alta') ? 'high' : '';
+                return `
+                    <div class="evidence-card ${cssClass}">
+                        <div class="doc-id"><i class="fas fa-file-pdf"></i> ${e.document || 'Document'}</div>
+                        <div class="content">${e.content || 'Content not available'}</div>
+                        <div class="importance"><i class="fas fa-exclamation-triangle"></i> ${e.importance || ''}</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('evidenceList').innerHTML = evidenceHtml || '<p style="color: var(--text-muted);">No significant evidence</p>';
+
+            // Tab: Timeline
+            const timeline = result.analysis?.timeline || [];
+            const timelineHtml = timeline.map(t => `
+                <div class="timeline-item">
+                    <div class="date">${t.date || 'Unknown date'}</div>
+                    <div class="event">${t.event || ''}</div>
+                </div>
+            `).join('');
+            document.getElementById('timelineList').innerHTML = timelineHtml || '<p style="color: var(--text-muted);">No timeline events</p>';
+
+            // Tab: Next Steps
+            const followUp = [
+                ...(result.follow_up?.critical_questions || []),
+                ...(result.follow_up?.leads_to_follow || [])
+            ].slice(0, 15);
+
+            const followUpHtml = followUp.map(q => {
+                const escaped = q.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                if (currentInvestigationId) {
+                    return `
+                        <div class="follow-up-item" onclick="setContinueObjective('${escaped}')">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>${q}</span>
+                            <span class="continue-badge">Continue</span>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="follow-up-item" onclick="setObjective('${escaped}')">
+                            <i class="fas fa-chevron-right"></i>
+                            <span>${q}</span>
+                        </div>
+                    `;
+                }
+            }).join('');
+            document.getElementById('followUpList').innerHTML = followUpHtml || '<p style="color: var(--text-muted);">No suggested leads</p>';
+
+            // Search tags
+            const searches = result.follow_up?.suggested_searches || [];
+            const tagsHtml = searches.map(s => {
+                if (currentInvestigationId) {
+                    return `<span class="search-tag" onclick="setContinueObjective('Investigate: ${s.replace(/'/g, "\\'")}')">${s} <i class="fas fa-plus-circle" style="font-size: 10px; opacity: 0.6;"></i></span>`;
+                } else {
+                    return `<span class="search-tag" onclick="window.open('/?q=${encodeURIComponent(s)}', '_blank')">${s}</span>`;
+                }
+            }).join('');
+            document.getElementById('searchTags').innerHTML = tagsHtml || '<p style="color: var(--text-muted);">No suggested searches</p>';
+
+            // Tab: Finanza
+            window.currentBankingData = result.banking || {};
+            renderFinanceTab(result.banking || {});
+
+            // Tab: Identities
+            renderIdentitiesTab(result.identities || {});
+
+            // Tab: Codes
+            renderCipherTab(result.cipher || {});
+
+            // Tab: Accumulated Deep Dives
+            const deepDives = result.deep_dives || [];
+            renderDeepDivesTab(deepDives);
+
+            // Continue investigation section - extract doc_id from evidence
+            const evidenceDocs = (result.analysis?.significant_evidence || [])
+                .map(e => e.document)
+                .filter(d => d && d.startsWith('EFTA'));
+            const uniqueDocs = [...new Set(evidenceDocs)];
+
+            if (uniqueDocs.length > 0 && currentInvestigationId) {
+                let deepDiveHtml = `
+                    <div style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(139, 92, 246, 0.1)); padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #a855f7;">
+                        <h4 style="color: #a855f7; margin: 0 0 15px 0;">
+                            <i class="fas fa-microscope"></i> Deep Dive Documents
+                        </h4>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                            Click on a document for a detailed analysis. Findings will be integrated into the investigation.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                `;
+                uniqueDocs.forEach(docId => {
+                    deepDiveHtml += `
+                        <button type="button" onclick="event.preventDefault(); deepDive('${docId}', 'Deep dive from investigation'); return false;"
+                                style="padding: 10px 16px; background: var(--bg-input); border: 1px solid #a855f7; color: var(--accent); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;"
+                                onmouseover="this.style.background='#a855f7'; this.style.color='white'"
+                                onmouseout="this.style.background='var(--bg-input)'; this.style.color='var(--accent)'">
+                            <i class="fas fa-file-alt"></i> ${docId}
+                        </button>
+                    `;
+                });
+                deepDiveHtml += `
+                        </div>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(168, 85, 247, 0.3); display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="searchMoreDocsInv" placeholder="Search for a specific document (EFTA...)..."
+                                   style="flex: 1; padding: 12px 16px; background: var(--bg-input); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; color: var(--text); font-size: 14px;"
+                                   onkeypress="if(event.key==='Enter') deepDiveCustomDoc()">
+                            <button type="button" onclick="event.preventDefault(); deepDiveCustomDoc(); return false;"
+                                    style="padding: 12px 20px; background: var(--accent); border: none; color: #000; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-search-plus"></i> Analyze
+                            </button>
+                        </div>
+                    </div>
+                `;
+                // Insert into summary tab
+                document.getElementById('reportContent').insertAdjacentHTML('beforeend', deepDiveHtml);
+            }
+
+            // Show report export bar
+            document.getElementById('reportBar').style.display = 'block';
+
+            // Reset to first tab (Summary)
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-sommario').classList.add('active');
+            document.querySelector('.tab-btn').classList.add('active');
+
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+
+            // Refresh saved list
+            loadSavedInvestigations();
+        }
+
+        function formatReport(text) {
+            // Split by ## headers
+            const sections = text.split(/(?=## )/);
+
+            if (sections.length <= 1) {
+                // No sections, return formatted text in a simple container
+                return `<div class="sub-tab-content active">${formatText(text)}</div>`;
+            }
+
+            // Map keywords to icons
+            const iconMap = [
+                { keywords: ['sommario', 'esecutivo', 'executive', 'summary'], icon: 'fa-clipboard-list' },
+                { keywords: ['persone', 'people', 'chiave', 'key', 'identificat'], icon: 'fa-users' },
+                { keywords: ['connession', 'connection', 'scopert', 'relazion', 'link'], icon: 'fa-link' },
+                { keywords: ['prove', 'evidence', 'significativ', 'document'], icon: 'fa-gavel' },
+                { keywords: ['pattern', 'comportament', 'behavior', 'anomal'], icon: 'fa-fingerprint' },
+                { keywords: ['timeline', 'cronolog', 'temporal', 'date'], icon: 'fa-clock' },
+                { keywords: ['domand', 'question', 'aperte', 'open'], icon: 'fa-question-circle' },
+                { keywords: ['prossim', 'next', 'passi', 'step', 'action'], icon: 'fa-arrow-right' },
+                { keywords: ['valutazion', 'evaluation', 'assessment', 'affidabil'], icon: 'fa-check-circle' },
+                { keywords: ['raccomand', 'recommend', 'suggest'], icon: 'fa-lightbulb' },
+                { keywords: ['conclusion', 'final'], icon: 'fa-flag-checkered' }
+            ];
+
+            const getIcon = (title) => {
+                const lower = title.toLowerCase();
+                for (const item of iconMap) {
+                    if (item.keywords.some(k => lower.includes(k))) {
+                        return item.icon;
+                    }
+                }
+                return 'fa-file-alt';
+            };
+
+            let tabsHtml = '<div class="sub-tabs-header">';
+            let contentHtml = '';
+            let validIndex = 0;
+
+            sections.forEach((section, index) => {
+                if (!section.trim()) return;
+
+                const lines = section.split('\n');
+                let title = lines[0].replace(/^## /, '').replace(/^#+ /, '').trim();
+                const content = lines.slice(1).join('\n');
+
+                if (!title || !content.trim()) return;
+
+                const icon = getIcon(title);
+                const active = validIndex === 0 ? 'active' : '';
+                const tabId = `report-subtab-${validIndex}`;
+
+                // Use original title, clean it up
+                let displayTitle = title
+                    .replace(/[#*_]/g, '')
+                    .trim();
+
+                // Truncate if too long
+                if (displayTitle.length > 20) {
+                    displayTitle = displayTitle.substring(0, 18) + '...';
+                }
+
+                tabsHtml += `
+                    <button class="sub-tab-btn ${active}" onclick="showSubTab('${tabId}', this)" title="${title}">
+                        <i class="fas ${icon}"></i> ${displayTitle}
+                    </button>
+                `;
+
+                contentHtml += `
+                    <div class="sub-tab-content ${active}" id="${tabId}">
+                        <h3 style="color: var(--accent-gold); margin-bottom: 15px; font-size: 18px;">
+                            <i class="fas ${icon}"></i> ${title}
+                        </h3>
+                        ${formatText(content)}
+                    </div>
+                `;
+
+                validIndex++;
+            });
+
+            tabsHtml += '</div>';
+
+            return tabsHtml + contentHtml;
+        }
+
+        function formatText(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n- /g, '<br>• ')
+                .replace(/\n\d+\. /g, (match) => '<br>' + match.trim() + ' ')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function showSubTab(tabId, btn) {
+            // Hide all sub-tab contents
+            document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Build network data from analysis if not provided
+        function buildNetworkData(analysis) {
+            const nodes = [];
+            const edges = [];
+            const nodeIds = new Set();
+
+            // Add people as nodes
+            (analysis.key_people || []).forEach(person => {
+                const name = person.name;
+                if (name && !nodeIds.has(name)) {
+                    nodeIds.add(name);
+                    const relevance = person.relevance || 'media';
+                    const color = relevance === 'alta' ? '#ff4757' : relevance === 'media' ? '#ffa502' : '#2ed573';
+                    nodes.push({
+                        id: name,
+                        label: name,
+                        title: person.role || '',
+                        color: color,
+                        size: relevance === 'alta' ? 30 : 20
+                    });
+                }
+            });
+
+            // Add connections as edges
+            (analysis.connections || []).forEach(conn => {
+                const from = conn.from;
+                const to = conn.to;
+
+                if (from && !nodeIds.has(from)) {
+                    nodeIds.add(from);
+                    nodes.push({ id: from, label: from, color: '#888', size: 15 });
+                }
+                if (to && !nodeIds.has(to)) {
+                    nodeIds.add(to);
+                    nodes.push({ id: to, label: to, color: '#888', size: 15 });
+                }
+
+                if (from && to) {
+                    edges.push({
+                        from: from,
+                        to: to,
+                        label: conn.type || '',
+                        title: conn.evidence || ''
+                    });
+                }
+            });
+
+            return { nodes, edges };
+        }
+
+        // Render network graph with vis.js
+        let networkInstance = null;
+
+        function renderNetwork(data) {
+            const container = document.getElementById('networkGraph');
+
+            if (networkInstance) {
+                networkInstance.destroy();
+            }
+
+            if (!data.nodes || data.nodes.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 50px;">No connections to display</p>';
+                return;
+            }
+
+            const nodes = new vis.DataSet(data.nodes);
+            const edges = new vis.DataSet(data.edges);
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    font: { color: '#e0e0e0', size: 14 },
+                    borderWidth: 2
+                },
+                edges: {
+                    color: { color: '#555', highlight: '#ffd700' },
+                    font: { color: '#888', size: 10, align: 'middle' },
+                    arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+                    smooth: { type: 'curvedCW', roundness: 0.2 }
+                },
+                physics: {
+                    stabilization: true,
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 150
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 100
+                }
+            };
+
+            networkInstance = new vis.Network(container, { nodes, edges }, options);
+        }
+
+        // Graph controls
+        function zoomGraph(scale) {
+            if (!networkInstance) return;
+            const currentScale = networkInstance.getScale();
+            networkInstance.moveTo({
+                scale: currentScale * scale,
+                animation: { duration: 300, easingFunction: 'easeInOutQuad' }
+            });
+        }
+
+        function fitGraph() {
+            if (!networkInstance) return;
+            networkInstance.fit({
+                animation: { duration: 500, easingFunction: 'easeInOutQuad' }
+            });
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('networkGraph');
+            const controls = document.querySelector('.graph-controls');
+            const btn = event.currentTarget;
+
+            if (container.classList.contains('fullscreen')) {
+                container.classList.remove('fullscreen');
+                controls.classList.remove('fullscreen-mode');
+                btn.innerHTML = '<i class="fas fa-expand"></i>';
+                btn.title = 'Fullscreen';
+            } else {
+                container.classList.add('fullscreen');
+                controls.classList.add('fullscreen-mode');
+                btn.innerHTML = '<i class="fas fa-compress"></i>';
+                btn.title = 'Exit fullscreen';
+            }
+
+            // Re-fit after size change
+            setTimeout(() => {
+                if (networkInstance) {
+                    networkInstance.fit({ animation: { duration: 300 } });
+                }
+            }, 350);
+        }
+
+        // ESC to exit fullscreen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const container = document.getElementById('networkGraph');
+                const controls = document.querySelector('.graph-controls');
+                if (container && container.classList.contains('fullscreen')) {
+                    container.classList.remove('fullscreen');
+                    if (controls) controls.classList.remove('fullscreen-mode');
+                    const btn = document.querySelector('.graph-controls button[title="Exit fullscreen"]');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-expand"></i>';
+                        btn.title = 'Fullscreen';
+                    }
+                }
+            }
+        });
+
+        // Load saved investigations
+        let selectedInvestigations = new Set();
+
+        async function loadSavedInvestigations() {
+            try {
+                const response = await fetch('/api/investigation/list');
+                const data = await response.json();
+
+                const list = document.getElementById('savedList');
+
+                if (!data.investigations || data.investigations.length === 0) {
+                    list.innerHTML = '<div class="no-saved">No saved investigations</div>';
+                    return;
+                }
+
+                list.innerHTML = data.investigations.map(inv => {
+                    const date = inv.date ? new Date(inv.date).toLocaleDateString('en-US', {
+                        day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                    }) : '';
+                    const shortObjective = (inv.objective || 'Untitled').substring(0, 60) + ((inv.objective || '').length > 60 ? '...' : '');
+                    return `
+                        <div class="saved-item">
+                            <input type="checkbox" class="inv-checkbox" data-id="${inv.id}" onclick="event.stopPropagation(); toggleSelection('${inv.id}')" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span class="date" onclick="loadInvestigation('${inv.id}')" style="cursor: pointer;">${date}</span>
+                            <span class="objective" onclick="loadInvestigation('${inv.id}')" style="cursor: pointer;" title="${inv.objective || ''}">${shortObjective}</span>
+                            <span class="stats">
+                                <span><i class="fas fa-file"></i> ${inv.documents_found || 0}</span>
+                                <span><i class="fas fa-users"></i> ${inv.people_count || 0}</span>
+                                <span><i class="fas fa-link"></i> ${inv.connections_count || 0}</span>
+                            </span>
+                            <button class="delete-btn" onclick="event.stopPropagation(); deleteInvestigation('${inv.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Reset selections
+                selectedInvestigations.clear();
+                updateSelectionCount();
+
+            } catch (error) {
+                console.error('[Load Saved] Error:', error);
+                document.getElementById('savedList').innerHTML = '<div class="no-saved">Loading error</div>';
+            }
+        }
+
+        function toggleSelection(id) {
+            if (selectedInvestigations.has(id)) {
+                selectedInvestigations.delete(id);
+            } else {
+                selectedInvestigations.add(id);
+            }
+            updateSelectionCount();
+        }
+
+        function updateSelectionCount() {
+            const count = selectedInvestigations.size;
+            document.getElementById('selectedCount').textContent = `${count} selected`;
+            document.getElementById('metaBtn').disabled = count < 2;
+
+            // Update button text
+            if (count >= 2) {
+                document.getElementById('metaBtn').innerHTML = `<i class="fas fa-balance-scale"></i> Compare ${count} Investigations`;
+            } else {
+                document.getElementById('metaBtn').innerHTML = `<i class="fas fa-balance-scale"></i> Select at least 2`;
+            }
+        }
+
+        // Load a specific investigation
+        async function loadInvestigation(id) {
+            try {
+                const response = await fetch(`/api/investigation/${id}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                // Set objective
+                document.getElementById('objectiveInput').value = data.objective || '';
+
+                // Render results
+                renderResults({
+                    success: true,
+                    objective: data.objective || '',
+                    documents_found: data.documents_found,
+                    analysis: data.analysis,
+                    follow_up: data.follow_up,
+                    report: data.report,
+                    network_data: data.network_data,
+                    banking: data.banking || {},
+                    identities: data.identities || {},
+                    cipher: data.cipher || {},
+                    deep_dives: data.deep_dives || [],
+                    continuation_history: data.continuation_history || [],
+                    citation_verification: data.citation_verification || null,
+                    investigation_id: id
+                });
+
+            } catch (error) {
+                alert('Loading error: ' + error.message);
+            }
+        }
+
+        // Delete an investigation
+        async function deleteInvestigation(id) {
+            if (!confirm('Delete this investigation?')) return;
+
+            try {
+                const response = await fetch(`/api/investigation/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                loadSavedInvestigations();
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Delete ALL investigations, analyses, people, searches, RAG
+        async function deleteAllInvestigations() {
+            const msg = 'WARNING: This will permanently delete:\n\n' +
+                '- All investigations\n' +
+                '- All analyses (network + deep)\n' +
+                '- All merges\n' +
+                '- All syntheses\n' +
+                '- All people\n' +
+                '- All saved searches\n' +
+                '- All RAG/ChromaDB data\n\n' +
+                'Type "DELETE" to confirm:';
+            const answer = prompt(msg);
+            if (answer !== 'DELETE') return;
+
+            try {
+                const response = await fetch('/api/investigations/delete-all', { method: 'DELETE' });
+                const data = await response.json();
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                alert(`Deleted: ${data.message}\n\nDetails:\n` +
+                    Object.entries(data.details || {}).map(([k,v]) => `  ${k}: ${v}`).join('\n'));
+                loadSavedInvestigations();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // ==================== META-INVESTIGATION ====================
+
+        let metaJobId = null;
+        let metaPollInterval = null;
+
+        async function startMetaInvestigation() {
+            if (selectedInvestigations.size < 2) {
+                alert('Select at least 2 investigations to compare');
+                return;
+            }
+
+            document.getElementById('metaProgressSection').classList.add('active');
+            document.getElementById('metaResultsSection').classList.remove('active');
+            document.getElementById('metaBtn').disabled = true;
+
+            // Reset status
+            ['analyze', 'resolve', 'verdict'].forEach(step => {
+                const el = document.getElementById(`meta-status-${step}`);
+                el.className = 'agent-status waiting';
+            });
+
+            try {
+                const response = await fetch('/api/meta-investigation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        investigation_ids: Array.from(selectedInvestigations)
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                metaJobId = data.job_id;
+                metaPollInterval = setInterval(pollMetaStatus, 2000);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('metaProgressSection').classList.remove('active');
+                document.getElementById('metaBtn').disabled = false;
+            }
+        }
+
+        async function pollMetaStatus() {
+            if (!metaJobId) return;
+
+            try {
+                const response = await fetch(`/api/meta-investigation/status/${metaJobId}`);
+                const data = await response.json();
+
+                document.getElementById('metaProgressText').textContent = data.progress || 'Processing...';
+                updateMetaStatus(data.progress);
+
+                if (data.status === 'completed') {
+                    clearInterval(metaPollInterval);
+                    document.getElementById('metaProgressSection').classList.remove('active');
+                    document.getElementById('metaBtn').disabled = false;
+                    renderMetaResults(data.result);
+
+                } else if (data.status === 'error') {
+                    clearInterval(metaPollInterval);
+                    document.getElementById('metaProgressSection').classList.remove('active');
+                    document.getElementById('metaBtn').disabled = false;
+                    alert('Error: ' + data.error);
+                }
+
+            } catch (error) {
+                console.error('[Meta Poll] Error:', error);
+            }
+        }
+
+        function updateMetaStatus(progress) {
+            const lower = progress.toLowerCase();
+
+            if (lower.includes('analisi') || lower.includes('comparativ') || lower.includes('analysis') || lower.includes('comparative')) {
+                setMetaStepWorking('analyze');
+            } else if (lower.includes('ricerca') || lower.includes('risol') || lower.includes('contraddiz') || lower.includes('research') || lower.includes('resolv') || lower.includes('contradiction')) {
+                setMetaStepDone('analyze');
+                setMetaStepWorking('resolve');
+            } else if (lower.includes('sintesi') || lower.includes('verdetto') || lower.includes('final') || lower.includes('synthesis') || lower.includes('verdict')) {
+                setMetaStepDone('analyze');
+                setMetaStepDone('resolve');
+                setMetaStepWorking('verdict');
+            } else if (lower.includes('complet')) {
+                ['analyze', 'resolve', 'verdict'].forEach(setMetaStepDone);
+            }
+        }
+
+        function setMetaStepWorking(step) {
+            const el = document.getElementById(`meta-status-${step}`);
+            el.className = 'agent-status working';
+        }
+
+        function setMetaStepDone(step) {
+            const el = document.getElementById(`meta-status-${step}`);
+            el.className = 'agent-status done';
+        }
+
+        function renderMetaResults(result) {
+            if (!result || !result.success) {
+                alert('Meta-investigation failed: ' + (result?.error || 'Unknown error'));
+                return;
+            }
+
+            document.getElementById('metaResultsSection').classList.add('active');
+
+            // Stats
+            const analysis = result.analysis || {};
+            document.getElementById('metaStatInv').textContent = result.investigations_analyzed || 0;
+            document.getElementById('metaStatContradictions').textContent = (analysis.contradictions || []).length;
+            document.getElementById('metaStatCommon').textContent = (analysis.common_findings || []).length;
+
+            // Contradictions
+            const contradictions = analysis.contradictions || [];
+            if (contradictions.length > 0) {
+                const contrHtml = contradictions.map(c => `
+                    <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff4757;">
+                        <div style="font-weight: 600; color: var(--accent-gold); margin-bottom: 8px;">
+                            <i class="fas fa-exclamation-circle"></i> ${c.topic || 'Contradiction'}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                            <div style="background: rgba(255,71,87,0.1); padding: 10px; border-radius: 5px;">
+                                <small style="color: var(--text-muted);">Inv. 1 says:</small><br>
+                                ${c.inv1_says || 'N/A'}
+                            </div>
+                            <div style="background: rgba(46,213,115,0.1); padding: 10px; border-radius: 5px;">
+                                <small style="color: var(--text-muted);">Inv. 2 says:</small><br>
+                                ${c.inv2_says || 'N/A'}
+                            </div>
+                        </div>
+                        <div style="color: var(--accent); font-size: 13px;">
+                            <i class="fas fa-search"></i> To verify: ${c.resolution_needed || 'N/A'}
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('contradictionsList').innerHTML = contrHtml;
+            } else {
+                document.getElementById('contradictionsList').innerHTML = '<p style="color: var(--text-muted);">No contradictions detected</p>';
+            }
+
+            // Document Analyses
+            const docAnalyses = result.resolution?.document_analyses || [];
+            if (docAnalyses.length > 0) {
+                document.getElementById('docAnalysesCard').style.display = 'block';
+                const docHtml = docAnalyses.map(da => {
+                    const source = da.source || 'unknown';
+                    const sourceLabel = source === 'pdf' ? '📄 Full PDF' : source === 'snippets' ? '📝 Excerpts' : '❓ N/A';
+                    const borderColor = source === 'pdf' ? '#2ed573' : source === 'snippets' ? '#ffa502' : '#ff4757';
+
+                    return `
+                        <div style="background: var(--bg-input); padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid ${borderColor};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-weight: 600; color: ${borderColor}; font-family: monospace;">
+                                    <i class="fas fa-file-pdf"></i> ${da.doc_id || 'Document'}
+                                </span>
+                                <span style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 10px;">
+                                    ${sourceLabel}
+                                </span>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px; color: var(--text-muted); max-height: 100px; overflow-y: auto;">
+                                <strong>Content:</strong> ${(da.text_preview || '').substring(0, 300)}...
+                            </div>
+                            <div style="line-height: 1.6; padding: 10px; background: rgba(46,213,115,0.05); border-radius: 5px;">
+                                <strong style="color: var(--accent-gold);">📋 Analysis:</strong><br>
+                                ${formatText(da.analysis || 'No analysis')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('docAnalysesList').innerHTML = docHtml;
+            } else {
+                document.getElementById('docAnalysesCard').style.display = 'none';
+            }
+
+            // Verdict
+            const verdict = result.verdict || 'No verdict generated';
+            document.getElementById('verdictContent').innerHTML = formatReport(verdict);
+
+            // Scroll to results
+            document.getElementById('metaResultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==================== DEEP DIVE PER INVESTIGATION ====================
+
+        function deepDiveCustomDoc() {
+            const docId = document.getElementById('searchMoreDocsInv').value.trim();
+            if (!docId) {
+                alert('Enter a document ID (e.g. EFTA01234567)');
+                return;
+            }
+            deepDive(docId, 'Manual search');
+        }
+
+        async function deepDive(docId, context) {
+            // Add loading indicator in summary tab
+            const reportContent = document.getElementById('reportContent');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = `loading-inv-${docId}`;
+            loadingDiv.innerHTML = `
+                <div style="background: rgba(168, 85, 247, 0.1); padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #a855f7;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #a855f7;"></i>
+                        <div>
+                            <div style="font-weight: 600; color: #a855f7;">Analyzing ${docId}...</div>
+                            <div id="progress-inv-${docId}" style="font-size: 12px; color: var(--text-muted);">Starting analysis...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            reportContent.appendChild(loadingDiv);
+            loadingDiv.scrollIntoView({behavior: 'smooth'});
+
+            try {
+                // Start deep dive (uses the same endpoint as merge)
+                const startResponse = await fetch('/api/investigations/deep-dive', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({doc_id: docId, context: context})
+                });
+                const startData = await startResponse.json();
+
+                if (startData.error) {
+                    loadingDiv.remove();
+                    alert('Error: ' + startData.error);
+                    return;
+                }
+
+                const jobId = startData.job_id;
+                const progressText = document.getElementById(`progress-inv-${docId}`);
+
+                // Polling
+                let data = null;
+                while (true) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    const statusResponse = await fetch(`/api/investigations/deep-dive/status/${jobId}`);
+                    const status = await statusResponse.json();
+
+                    if (progressText && status.progress) {
+                        progressText.textContent = status.progress;
+                    }
+
+                    if (status.status === 'completed') {
+                        data = status.result;
+                        break;
+                    } else if (status.status === 'error') {
+                        throw new Error(status.error || 'Error during analysis');
+                    }
+                }
+
+                loadingDiv.remove();
+
+                if (!data) throw new Error('No results received');
+
+                // Show deep dive results immediately
+                renderDeepDiveResult(docId, data);
+
+                // Integrate into investigation if we have the ID
+                if (currentInvestigationId) {
+                    const integratingDiv = document.createElement('div');
+                    integratingDiv.innerHTML = `
+                        <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid var(--accent);">
+                            <i class="fas fa-spinner fa-spin" style="color: var(--accent);"></i>
+                            <span style="margin-left: 10px;">Integrating findings into investigation...</span>
+                        </div>
+                    `;
+                    reportContent.appendChild(integratingDiv);
+
+                    try {
+                        const integrateResponse = await fetch('/api/investigation/integrate', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                investigation_id: currentInvestigationId,
+                                new_findings: data
+                            })
+                        });
+
+                        const integratedData = await integrateResponse.json();
+                        integratingDiv.remove();
+
+                        if (integratedData.success) {
+                            // Re-render everything with updated data
+                            renderResults(integratedData);
+                        } else {
+                            console.warn('Integration failed:', integratedData.error);
+                        }
+                    } catch (integrationError) {
+                        console.warn('Integration failed:', integrationError);
+                        integratingDiv.remove();
+                    }
+                }
+
+            } catch (error) {
+                const errDiv = document.getElementById(`loading-inv-${docId}`);
+                if (errDiv) errDiv.remove();
+
+                const errorDiv = document.createElement('div');
+                errorDiv.innerHTML = `
+                    <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #ff6b6b;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
+                        <strong>Error ${docId}:</strong> ${error.message}
+                        <button onclick="this.parentElement.parentElement.remove(); deepDive('${docId}', '${context.replace(/'/g, "\\'")}');"
+                                style="margin-left: 15px; padding: 6px 12px; background: #a855f7; border: none; color: white; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-redo"></i> Retry
+                        </button>
+                    </div>
+                `;
+                reportContent.appendChild(errorDiv);
+            }
+        }
+
+        function renderDeepDiveResult(docId, data) {
+            const reportContent = document.getElementById('reportContent');
+            let html = `
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 12px; margin-top: 20px; border: 2px solid #a855f7;">
+                    <h4 style="color: #a855f7; margin: 0 0 15px 0;">
+                        <i class="fas fa-microscope"></i> Deep Analysis: ${docId}
+                    </h4>
+            `;
+            if (data.document_summary) {
+                html += `<p style="margin-bottom: 12px;">${data.document_summary}</p>`;
+            }
+            if (data.key_findings && data.key_findings.length > 0) {
+                html += `<h5 style="color: var(--accent-gold); margin: 10px 0 8px;"><i class="fas fa-star"></i> Key Findings</h5><ul style="margin-left: 20px;">`;
+                data.key_findings.forEach(f => html += `<li>${f}</li>`);
+                html += `</ul>`;
+            }
+            if (data.financial_transactions && data.financial_transactions.length > 0) {
+                html += `<h5 style="color: #2ed573; margin: 10px 0 8px;"><i class="fas fa-money-bill-wave"></i> Transactions</h5>`;
+                data.financial_transactions.forEach(t => {
+                    html += `<div style="background: rgba(46,213,115,0.1); padding: 6px 10px; border-radius: 4px; margin: 4px 0; font-size: 13px; border-left: 2px solid #2ed573;">
+                        <strong>${t.amount || ''}</strong> ${t.from || ''} → ${t.to || ''} ${t.date ? '(' + t.date + ')' : ''} ${t.purpose ? '- ' + t.purpose : ''}
+                    </div>`;
+                });
+            }
+            if (data.red_flags && data.red_flags.length > 0) {
+                html += `<h5 style="color: #ff6b6b; margin: 10px 0 8px;"><i class="fas fa-flag"></i> Red Flags</h5>`;
+                html += `<ul style="margin-left: 20px; color: #ff6b6b;">`;
+                data.red_flags.forEach(f => html += `<li>${f}</li>`);
+                html += `</ul>`;
+            }
+            if (data.trafficking_references && data.trafficking_references.length > 0) {
+                html += `<div style="background: rgba(255,0,0,0.1); padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px solid rgba(255,0,0,0.3);">
+                    <strong style="color: #ff0000;"><i class="fas fa-skull-crossbones"></i> Trafficking:</strong>`;
+                data.trafficking_references.forEach(t => html += `<p style="font-size: 13px; font-style: italic;">"${t}"</p>`);
+                html += `</div>`;
+            }
+            if (data.conclusion) {
+                html += `<div style="margin-top: 10px; font-size: 13px; color: var(--accent);"><i class="fas fa-gavel"></i> ${data.conclusion}</div>`;
+            }
+            if (data.related_documents && data.related_documents.length > 0) {
+                html += `<div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">`;
+                data.related_documents.forEach(d => {
+                    html += `<button onclick="deepDive('${d}', 'Related to ${docId}')" style="padding: 5px 10px; background: var(--bg-input); border: 1px solid #a855f7; color: #a855f7; border-radius: 15px; cursor: pointer; font-size: 12px;">${d} <i class="fas fa-arrow-right"></i></button>`;
+                });
+                html += `</div>`;
+            }
+            html += `</div>`;
+            reportContent.insertAdjacentHTML('beforeend', html);
+        }
+
+        // ==================== RENDER FINANCE TAB ====================
+        function renderFinanceTab(banking) {
+            const container = document.getElementById('financeContent');
+            if (!banking || (!banking.banks?.length && !banking.transactions?.length && !banking.red_flags?.length && !banking.offshore?.length)) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No financial data available</p>';
+                return;
+            }
+
+            let html = '';
+
+            // Stats bar
+            html += `<div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-box">
+                    <div class="number" style="color: #2ed573;">${banking.banks?.length || 0}</div>
+                    <div class="label">Banks</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" style="color: var(--accent);">${banking.transactions?.length || 0}</div>
+                    <div class="label">Transactions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" style="color: var(--warning);">${banking.offshore?.length || 0}</div>
+                    <div class="label">Offshore</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" style="color: var(--danger);">${banking.red_flags?.length || 0}</div>
+                    <div class="label">Red Flags</div>
+                </div>
+            </div>`;
+
+            // Transactions table
+            if (banking.transactions?.length > 0) {
+                html += `<h4 style="color: var(--accent-gold); margin: 15px 0 10px;"><i class="fas fa-exchange-alt"></i> Transactions</h4>`;
+                html += `<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead><tr style="background: var(--bg-input); border-bottom: 2px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 10px; text-align: left;">From</th>
+                        <th style="padding: 10px; text-align: left;">To</th>
+                        <th style="padding: 10px; text-align: right;">Amount</th>
+                        <th style="padding: 10px; text-align: left;">Type</th>
+                        <th style="padding: 10px; text-align: left;">Date</th>
+                        <th style="padding: 10px; text-align: left;">Bank</th>
+                        <th style="padding: 10px; text-align: left;">Doc</th>
+                    </tr></thead><tbody>`;
+                banking.transactions.forEach(tx => {
+                    const rowColor = tx.suspicious ? 'rgba(255,71,87,0.1)' : 'transparent';
+                    const amountColor = tx.suspicious ? '#ff4757' : '#2ed573';
+                    html += `<tr style="background: ${rowColor}; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 8px;">${tx.from_entity || ''}</td>
+                        <td style="padding: 8px;">${tx.to_entity || ''}</td>
+                        <td style="padding: 8px; text-align: right; color: ${amountColor}; font-weight: 600;">${tx.amount || ''}</td>
+                        <td style="padding: 8px;">${tx.type || ''}</td>
+                        <td style="padding: 8px;">${tx.date || ''}</td>
+                        <td style="padding: 8px;">${tx.bank || ''}</td>
+                        <td style="padding: 8px; font-size: 11px; color: var(--accent);">${tx.evidence || ''}</td>
+                    </tr>`;
+                    if (tx.suspicious && tx.reason) {
+                        html += `<tr style="background: rgba(255,71,87,0.05);"><td colspan="7" style="padding: 4px 8px 8px; font-size: 11px; color: #ff4757;">
+                            <i class="fas fa-exclamation-triangle"></i> ${tx.reason}
+                        </td></tr>`;
+                    }
+                });
+                html += `</tbody></table></div>`;
+            }
+
+            // Red flags
+            if (banking.red_flags?.length > 0) {
+                html += `<h4 style="color: #ff4757; margin: 20px 0 10px;"><i class="fas fa-flag"></i> Red Flags</h4>`;
+                banking.red_flags.forEach(rf => {
+                    const severityColor = rf.severity === 'critica' ? '#ff0000' : rf.severity === 'alta' ? '#ff4757' : '#ffa502';
+                    html += `<div style="background: rgba(255,71,87,0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${severityColor};">
+                        <span style="font-weight: 600; color: ${severityColor}; text-transform: uppercase; font-size: 11px;">${rf.severity || 'media'}</span>
+                        <p style="margin: 5px 0 0; font-size: 13px;">${rf.description || ''}</p>
+                        <span style="font-size: 11px; color: var(--accent);">${rf.evidence || ''}</span>
+                    </div>`;
+                });
+            }
+
+            // Offshore
+            if (banking.offshore?.length > 0) {
+                html += `<h4 style="color: var(--warning); margin: 20px 0 10px;"><i class="fas fa-globe"></i> Offshore Entities</h4>`;
+                banking.offshore.forEach(o => {
+                    html += `<div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--warning);">
+                        <strong>${o.entity || ''}</strong> <span style="color: var(--text-muted);">(${o.jurisdiction || ''})</span>
+                        <br><span style="font-size: 12px;">Connected to: ${(o.connected_to || []).join(', ')}</span>
+                        <br><span style="font-size: 11px; color: var(--accent);">${o.evidence || ''}</span>
+                    </div>`;
+                });
+            }
+
+            // Finance network graph
+            if (banking.transactions?.length > 0 || banking.banks?.length > 0) {
+                html += `<h4 style="color: var(--accent-gold); margin: 20px 0 10px;"><i class="fas fa-project-diagram"></i> Financial Network</h4>`;
+                html += `<div id="financeNetworkGraph" style="height: 400px; background: var(--bg-input); border-radius: 8px;"></div>`;
+            }
+
+            container.innerHTML = html;
+
+            // Render finance network
+            if (banking.transactions?.length > 0 || banking.banks?.length > 0) {
+                setTimeout(() => renderFinanceNetwork(banking), 200);
+            }
+        }
+
+        function renderFinanceNetwork(banking) {
+            const container = document.getElementById('financeNetworkGraph');
+            if (!container) return;
+
+            const nodes = [];
+            const edges = [];
+            const nodeIds = new Set();
+
+            // Banks as green diamond nodes
+            (banking.banks || []).forEach(bank => {
+                const name = bank.name;
+                if (name && !nodeIds.has(name)) {
+                    nodeIds.add(name);
+                    nodes.push({ id: name, label: name, shape: 'diamond', color: '#2ed573', size: 25, title: bank.role || '' });
+                }
+            });
+
+            // Transactions as edges
+            (banking.transactions || []).forEach(tx => {
+                const from = tx.from_entity;
+                const to = tx.to_entity;
+                if (from && !nodeIds.has(from)) {
+                    nodeIds.add(from);
+                    nodes.push({ id: from, label: from, color: tx.suspicious ? '#ff4757' : '#888', size: 18 });
+                }
+                if (to && !nodeIds.has(to)) {
+                    nodeIds.add(to);
+                    nodes.push({ id: to, label: to, color: tx.suspicious ? '#ff4757' : '#888', size: 18 });
+                }
+                if (from && to) {
+                    edges.push({
+                        from: from, to: to,
+                        label: tx.amount || '',
+                        color: { color: tx.suspicious ? '#ff4757' : '#2ed573' },
+                        title: tx.reason || tx.type || ''
+                    });
+                }
+            });
+
+            if (nodes.length === 0) return;
+
+            const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+            const options = {
+                nodes: { shape: 'dot', font: { color: '#e0e0e0', size: 12 }, borderWidth: 2 },
+                edges: { font: { color: '#888', size: 9, align: 'middle' }, arrows: { to: { enabled: true, scaleFactor: 0.5 } }, smooth: { type: 'curvedCW', roundness: 0.2 } },
+                physics: { stabilization: true, barnesHut: { gravitationalConstant: -2000, springLength: 120 } }
+            };
+            new vis.Network(container, data, options);
+        }
+
+        // ==================== RENDER IDENTITIES TAB ====================
+        function renderIdentitiesTab(identities) {
+            const container = document.getElementById('identitiesContent');
+            if (!identities || (!identities.identities?.length && !identities.unresolved_references?.length)) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No identity data available</p>';
+                return;
+            }
+
+            let html = '';
+
+            // Resolved identities
+            if (identities.identities?.length > 0) {
+                html += `<h4 style="color: #ff6348; margin: 0 0 15px;"><i class="fas fa-check-circle"></i> Resolved Identities (${identities.identities.length})</h4>`;
+                html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">`;
+                identities.identities.forEach(ident => {
+                    html += `<div style="background: var(--bg-input); padding: 15px; border-radius: 10px; border-left: 3px solid #ff6348;">
+                        <div style="font-weight: 600; font-size: 16px; color: #ff6348; margin-bottom: 8px;">
+                            <i class="fas fa-user"></i> ${ident.canonical_name || ''}
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">`;
+                    (ident.aliases || []).forEach(alias => {
+                        html += `<span style="background: rgba(255,99,72,0.2); color: #ff6348; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">${alias}</span>`;
+                    });
+                    html += `</div>`;
+                    if (ident.evidence?.length > 0) {
+                        html += `<div style="font-size: 12px; color: var(--text-muted);">`;
+                        ident.evidence.slice(0, 3).forEach(ev => {
+                            html += `<div style="margin-bottom: 4px;"><span style="color: var(--accent);">${ev.doc || ''}</span>: "${ev.alias || ''}" in "${(ev.context || '').substring(0, 80)}..."</div>`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Unresolved references
+            if (identities.unresolved_references?.length > 0) {
+                html += `<h4 style="color: var(--warning); margin: 25px 0 10px;"><i class="fas fa-question-circle"></i> Unresolved References (${identities.unresolved_references.length})</h4>`;
+                identities.unresolved_references.forEach(ref => {
+                    html += `<div style="background: rgba(255,165,2,0.1); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--warning);">
+                        <strong>"${ref.reference || ''}"</strong>
+                        <span style="font-size: 12px; color: var(--text-muted);"> - ${(ref.context || '').substring(0, 100)}</span>
+                        <br><span style="font-size: 11px; color: var(--accent);">${ref.doc || ''}</span>`;
+                    if (ref.possible_identities?.length > 0) {
+                        html += ` <span style="font-size: 11px; color: var(--text-muted);">Possible: ${ref.possible_identities.join(', ')}</span>`;
+                    }
+                    html += `</div>`;
+                });
+            }
+
+            // Nickname patterns
+            if (identities.nickname_patterns?.length > 0) {
+                html += `<h4 style="color: var(--accent); margin: 20px 0 10px;"><i class="fas fa-lightbulb"></i> Nickname Patterns</h4>`;
+                html += `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+                identities.nickname_patterns.forEach(p => {
+                    html += `<span style="background: rgba(0,212,255,0.1); color: var(--accent); padding: 5px 12px; border-radius: 15px; font-size: 12px;">${p}</span>`;
+                });
+                html += `</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ==================== RENDER CIPHER TAB ====================
+        function renderCipherTab(cipher) {
+            const container = document.getElementById('cipherContent');
+            if (!cipher || (!cipher.coded_passages?.length && !cipher.euphemisms?.length && !cipher.suspicious_language?.length)) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No coded language data available</p>';
+                return;
+            }
+
+            let html = '';
+
+            // Coded passages
+            if (cipher.coded_passages?.length > 0) {
+                html += `<h4 style="color: #7bed9f; margin: 0 0 15px;"><i class="fas fa-lock-open"></i> Decoded Passages (${cipher.coded_passages.length})</h4>`;
+                cipher.coded_passages.forEach(cp => {
+                    const confColor = cp.confidence === 'alta' ? '#2ed573' : cp.confidence === 'media' ? '#ffa502' : '#888';
+                    html += `<div style="background: var(--bg-input); padding: 15px; border-radius: 10px; margin-bottom: 12px; border-left: 3px solid #7bed9f;">
+                        <div style="font-style: italic; color: var(--text-muted); font-size: 13px; margin-bottom: 8px;">"${cp.text || ''}"</div>
+                        <div style="color: #7bed9f; font-weight: 600; margin-bottom: 5px;"><i class="fas fa-arrow-right"></i> ${cp.interpretation || ''}</div>
+                        <div style="display: flex; gap: 15px; font-size: 11px;">
+                            <span style="color: ${confColor};"><i class="fas fa-signal"></i> Confidence: ${cp.confidence || ''}</span>
+                            <span style="color: var(--accent);">${cp.doc || ''}</span>
+                        </div>`;
+                    if (cp.reasoning) {
+                        html += `<div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;"><i class="fas fa-info-circle"></i> ${cp.reasoning}</div>`;
+                    }
+                    html += `</div>`;
+                });
+            }
+
+            // Euphemisms glossary
+            if (cipher.euphemisms?.length > 0) {
+                html += `<h4 style="color: var(--accent-gold); margin: 20px 0 10px;"><i class="fas fa-book"></i> Euphemism Glossary</h4>`;
+                html += `<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead><tr style="background: var(--bg-input); border-bottom: 2px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 10px; text-align: left;">Term</th>
+                        <th style="padding: 10px; text-align: left;">Likely Meaning</th>
+                        <th style="padding: 10px; text-align: center;">Occurrences</th>
+                        <th style="padding: 10px; text-align: left;">Documents</th>
+                    </tr></thead><tbody>`;
+                cipher.euphemisms.forEach(e => {
+                    html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 8px; font-weight: 600; color: var(--accent-gold);">"${e.term || ''}"</td>
+                        <td style="padding: 8px;">${e.likely_meaning || ''}</td>
+                        <td style="padding: 8px; text-align: center;">${e.occurrences || 0}</td>
+                        <td style="padding: 8px; font-size: 11px; color: var(--accent);">${(e.evidence || []).join(', ')}</td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+
+            // Suspicious language
+            if (cipher.suspicious_language?.length > 0) {
+                html += `<h4 style="color: var(--danger); margin: 20px 0 10px;"><i class="fas fa-exclamation-circle"></i> Suspicious Language</h4>`;
+                cipher.suspicious_language.forEach(sl => {
+                    html += `<div style="background: rgba(255,71,87,0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--danger);">
+                        <div style="font-style: italic; margin-bottom: 5px;">"${sl.text || ''}"</div>
+                        <div style="font-size: 12px; color: var(--danger);">${sl.why_suspicious || ''}</div>
+                        <span style="font-size: 11px; color: var(--accent);">${sl.doc || ''}</span>
+                    </div>`;
+                });
+            }
+
+            // Number patterns
+            if (cipher.number_patterns?.length > 0) {
+                html += `<h4 style="color: var(--accent); margin: 20px 0 10px;"><i class="fas fa-hashtag"></i> Number Patterns</h4>`;
+                cipher.number_patterns.forEach(np => {
+                    html += `<div style="background: var(--bg-input); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                        <strong>${np.pattern || ''}</strong>: <span style="color: var(--text-muted);">${np.possible_meaning || ''}</span>
+                    </div>`;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderDeepDivesTab(deepDives) {
+            if (!deepDives || deepDives.length === 0) return;
+
+            // Add tab if it doesn't exist
+            const tabsHeader = document.querySelector('#resultsSection .tabs-header');
+            if (tabsHeader && !document.getElementById('tab-deepdives')) {
+                // Add the tab button
+                const tabBtn = document.createElement('button');
+                tabBtn.className = 'tab-btn';
+                tabBtn.onclick = function() { showTab('deepdives'); };
+                tabBtn.innerHTML = `<i class="fas fa-microscope"></i> Deep Dives (${deepDives.length})`;
+                tabsHeader.appendChild(tabBtn);
+
+                // Add the tab content
+                const tabContent = document.createElement('div');
+                tabContent.className = 'tab-content';
+                tabContent.id = 'tab-deepdives';
+                tabsHeader.parentElement.appendChild(tabContent);
+            }
+
+            const tabContent = document.getElementById('tab-deepdives');
+            if (!tabContent) return;
+
+            let html = `<h3 style="color: #a855f7; margin-bottom: 20px;"><i class="fas fa-microscope"></i> ${deepDives.length} Deep Analyses</h3>`;
+
+            deepDives.forEach(dd => {
+                html += `
+                    <div style="background: var(--bg-input); padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid #a855f7;">
+                        <div style="font-weight: 600; color: #a855f7; font-size: 15px; margin-bottom: 10px;">
+                            <i class="fas fa-file-alt"></i> ${dd.doc_id || 'N/A'}
+                            ${dd.title ? `<span style="font-weight: 400; font-size: 12px; color: var(--text-muted); margin-left: 10px;">${dd.title}</span>` : ''}
+                        </div>
+                `;
+                if (dd.document_summary) {
+                    html += `<p style="margin-bottom: 10px; font-size: 13px;">${dd.document_summary}</p>`;
+                }
+                if (dd.key_findings && dd.key_findings.length > 0) {
+                    html += `<strong style="color: var(--accent-gold); font-size: 12px;"><i class="fas fa-star"></i> Findings:</strong><ul style="margin: 5px 0 10px 20px; font-size: 13px;">`;
+                    dd.key_findings.forEach(f => html += `<li>${f}</li>`);
+                    html += `</ul>`;
+                }
+                if (dd.red_flags && dd.red_flags.length > 0) {
+                    html += `<strong style="color: #ff6b6b; font-size: 12px;"><i class="fas fa-flag"></i> Red Flags:</strong><ul style="margin: 5px 0 10px 20px; font-size: 12px; color: #ff6b6b;">`;
+                    dd.red_flags.forEach(f => html += `<li>${f}</li>`);
+                    html += `</ul>`;
+                }
+                if (dd.conclusion) {
+                    html += `<div style="font-size: 12px; color: var(--accent); margin-top: 8px;"><i class="fas fa-gavel"></i> ${dd.conclusion}</div>`;
+                }
+                html += `</div>`;
+            });
+
+            tabContent.innerHTML = html;
+        }
+
+        // ============ REPORT GENERATION ============
+
+        function generateReport() {
+            const r = currentResultData;
+            if (!r) { alert('No investigation data available'); return; }
+
+            const date = new Date().toLocaleString('it-IT', { dateStyle: 'long', timeStyle: 'short' });
+            const objective = r.objective || 'Investigation';
+
+            // Helper: escape HTML
+            const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+            // Helper: turn EFTA IDs into clickable links to the viewer
+            const linkifyEfta = (html) => {
+                return String(html).replace(/\b(EFTA\d{5,})\b/g,
+                    '<a href="/viewer?doc=$1" target="_blank" class="doc-link" title="Open $1 in viewer">$1</a>');
+            };
+
+            // Helper: escape + linkify
+            const escLink = (s) => linkifyEfta(esc(s));
+
+            // Helper: markdown-like to HTML
+            const md = (text) => {
+                if (!text) return '';
+                let result = String(text)
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/`(.*?)`/g, '<code>$1</code>')
+                    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                    .replace(/^\- (.+)$/gm, '<li>$1</li>')
+                    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+                    .replace(/(<li>.*<\/li>\n?)+/g, (m) => '<ul>' + m + '</ul>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>')
+                    .replace(/^\|(.+)\|$/gm, (match) => {
+                        const cells = match.split('|').filter(c => c.trim());
+                        if (cells.every(c => /^[\s\-:]+$/.test(c))) return '';
+                        const tag = 'td';
+                        return '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+                    });
+                return linkifyEfta(result);
+            };
+
+            // Build people section
+            const people = r.analysis?.key_people || [];
+            let peopleHtml = '';
+            if (people.length > 0) {
+                peopleHtml = `<table class="data-table">
+                    <thead><tr><th>Name</th><th>Role</th><th>Relevance</th><th>Evidence</th></tr></thead>
+                    <tbody>${people.map(p => `<tr>
+                        <td><strong>${esc(p.name)}</strong></td>
+                        <td>${esc(p.role)}</td>
+                        <td><span class="badge badge-${(p.relevance||'media').toLowerCase()}">${esc(p.relevance||'media')}</span></td>
+                        <td class="mono">${escLink(p.evidence_doc||'')}</td>
+                    </tr>`).join('')}</tbody></table>`;
+            } else {
+                peopleHtml = '<p class="empty">No people identified</p>';
+            }
+
+            // Build connections section
+            const connections = r.analysis?.connections || [];
+            let connectionsHtml = '';
+            if (connections.length > 0) {
+                connectionsHtml = `<table class="data-table">
+                    <thead><tr><th>From</th><th></th><th>To</th><th>Type</th><th>Evidence</th></tr></thead>
+                    <tbody>${connections.map(c => `<tr>
+                        <td><strong>${esc(c.from)}</strong></td>
+                        <td style="text-align:center;color:#ffd700;">&rarr;</td>
+                        <td><strong>${esc(c.to)}</strong></td>
+                        <td>${esc(c.type)}</td>
+                        <td class="mono">${escLink(c.evidence||'')}</td>
+                    </tr>`).join('')}</tbody></table>`;
+            } else {
+                connectionsHtml = '<p class="empty">No connections found</p>';
+            }
+
+            // Build evidence section
+            const evidence = r.analysis?.significant_evidence || [];
+            let evidenceHtml = '';
+            if (evidence.length > 0) {
+                evidenceHtml = evidence.map(e => `<div class="evidence-block">
+                    <div class="evidence-doc">${escLink(e.document)}</div>
+                    <div class="evidence-content">${escLink(e.content)}</div>
+                    <div class="evidence-importance">${esc(e.importance)}</div>
+                </div>`).join('');
+            } else {
+                evidenceHtml = '<p class="empty">No significant evidence</p>';
+            }
+
+            // Build timeline section
+            const timeline = r.analysis?.timeline || [];
+            let timelineHtml = '';
+            if (timeline.length > 0) {
+                timelineHtml = `<div class="timeline-report">${timeline.map(t => `<div class="tl-item">
+                    <div class="tl-date">${esc(t.date)}</div>
+                    <div class="tl-event">${esc(t.event)}</div>
+                    ${t.source ? `<div class="tl-source">${escLink(t.source)}</div>` : ''}
+                </div>`).join('')}</div>`;
+            } else {
+                timelineHtml = '<p class="empty">No timeline events</p>';
+            }
+
+            // Build finance section
+            const banking = r.banking || {};
+            let financeHtml = '';
+            const transactions = banking.transactions || [];
+            const banks = banking.banks || [];
+            const redFlags = banking.red_flags || [];
+            const offshore = banking.offshore || [];
+            if (transactions.length > 0 || banks.length > 0) {
+                if (banks.length > 0) {
+                    financeHtml += `<h3>Banks Identified</h3><table class="data-table">
+                        <thead><tr><th>Bank</th><th>Role</th><th>Evidence</th></tr></thead>
+                        <tbody>${banks.map(b => `<tr><td><strong>${esc(b.name)}</strong></td><td>${esc(b.role)}</td><td class="mono">${escLink(b.evidence)}</td></tr>`).join('')}</tbody></table>`;
+                }
+                if (transactions.length > 0) {
+                    financeHtml += `<h3>Transactions</h3><table class="data-table">
+                        <thead><tr><th>From</th><th>To</th><th>Amount</th><th>Date</th><th>Type</th><th>Evidence</th></tr></thead>
+                        <tbody>${transactions.map(t => `<tr class="${t.suspicious?'suspicious':''}">
+                            <td>${esc(t.from_entity)}</td><td>${esc(t.to_entity)}</td>
+                            <td><strong>${esc(t.amount)}</strong></td><td>${esc(t.date)}</td>
+                            <td>${esc(t.type)}</td><td class="mono">${escLink(t.evidence)}</td>
+                        </tr>`).join('')}</tbody></table>`;
+                }
+                if (offshore.length > 0) {
+                    financeHtml += `<h3>Offshore Entities</h3><table class="data-table">
+                        <thead><tr><th>Entity</th><th>Jurisdiction</th><th>Connected To</th><th>Evidence</th></tr></thead>
+                        <tbody>${offshore.map(o => `<tr><td><strong>${esc(o.entity)}</strong></td><td>${esc(o.jurisdiction)}</td><td>${esc((o.connected_to||[]).join(', '))}</td><td class="mono">${escLink(o.evidence)}</td></tr>`).join('')}</tbody></table>`;
+                }
+                if (redFlags.length > 0) {
+                    financeHtml += `<h3>Financial Red Flags</h3>` + redFlags.map(rf => `<div class="red-flag"><span class="rf-severity">${esc(rf.severity)}</span> ${escLink(rf.description)} <span class="mono">[${escLink(rf.evidence)}]</span></div>`).join('');
+                }
+            } else {
+                financeHtml = '<p class="empty">No financial data available</p>';
+            }
+
+            // Build identities section
+            const identities = r.identities || {};
+            let identitiesHtml = '';
+            const identitiesList = identities.identities || [];
+            const unresolved = identities.unresolved_references || [];
+            if (identitiesList.length > 0) {
+                identitiesHtml = `<table class="data-table">
+                    <thead><tr><th>Canonical Name</th><th>Aliases</th><th>Evidence</th></tr></thead>
+                    <tbody>${identitiesList.map(id => `<tr>
+                        <td><strong>${esc(id.canonical_name)}</strong></td>
+                        <td>${(id.aliases||[]).map(a => `<span class="alias-tag">${esc(a)}</span>`).join(' ')}</td>
+                        <td>${(id.evidence||[]).map(ev => `<span class="mono">${escLink(ev.doc||'')}</span>`).join(', ')}</td>
+                    </tr>`).join('')}</tbody></table>`;
+                if (unresolved.length > 0) {
+                    identitiesHtml += `<h3>Unresolved References</h3><ul>${unresolved.map(u => `<li><strong>${esc(u.reference)}</strong>: ${esc(u.context)} <span class="mono">[${escLink(u.doc)}]</span></li>`).join('')}</ul>`;
+                }
+            } else {
+                identitiesHtml = '<p class="empty">No identity data available</p>';
+            }
+
+            // Build cipher section
+            const cipher = r.cipher || {};
+            let cipherHtml = '';
+            const codedPassages = cipher.coded_passages || [];
+            const euphemisms = cipher.euphemisms || [];
+            if (codedPassages.length > 0 || euphemisms.length > 0) {
+                if (euphemisms.length > 0) {
+                    cipherHtml += `<h3>Decoded Euphemisms</h3><table class="data-table">
+                        <thead><tr><th>Term</th><th>Likely Meaning</th><th>Occurrences</th></tr></thead>
+                        <tbody>${euphemisms.map(e => `<tr><td><strong>"${esc(e.term)}"</strong></td><td>${esc(e.likely_meaning)}</td><td>${e.occurrences||'N/A'}</td></tr>`).join('')}</tbody></table>`;
+                }
+                if (codedPassages.length > 0) {
+                    cipherHtml += `<h3>Coded Passages</h3>` + codedPassages.map(p => `<div class="coded-block">
+                        <div class="coded-text">"${esc(p.text)}"</div>
+                        <div class="coded-interp"><strong>Interpretation:</strong> ${esc(p.interpretation)}</div>
+                        <div class="coded-meta"><span class="badge badge-${(p.confidence||'media').toLowerCase()}">${esc(p.confidence)}</span> <span class="mono">${escLink(p.doc)}</span></div>
+                    </div>`).join('');
+                }
+            } else {
+                cipherHtml = '<p class="empty">No coded language detected</p>';
+            }
+
+            // Build follow-up section
+            const followUp = r.follow_up || {};
+            let followUpHtml = '';
+            const questions = followUp.critical_questions || [];
+            const leads = followUp.leads_to_follow || [];
+            const sugSearches = followUp.suggested_searches || [];
+            if (questions.length > 0) {
+                followUpHtml += `<h3>Critical Questions</h3><ol>${questions.map(q => `<li>${esc(q)}</li>`).join('')}</ol>`;
+            }
+            if (leads.length > 0) {
+                followUpHtml += `<h3>Leads to Follow</h3><ul>${leads.map(l => `<li>${esc(l)}</li>`).join('')}</ul>`;
+            }
+            if (sugSearches.length > 0) {
+                followUpHtml += `<h3>Suggested Searches</h3><div class="search-tags-report">${sugSearches.map(s => `<span class="stag">${esc(s)}</span>`).join('')}</div>`;
+            }
+            if (!followUpHtml) followUpHtml = '<p class="empty">No follow-up suggestions</p>';
+
+            // Build the full HTML report
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investigation Report - ${esc(objective)}</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+        --bg: #0c0c1d;
+        --bg-card: #141430;
+        --bg-section: #1a1a3e;
+        --border: #2a2a5a;
+        --accent: #00d4ff;
+        --gold: #ffd700;
+        --text: #e8e8f0;
+        --text-muted: #8888aa;
+        --red: #ff4757;
+        --green: #2ed573;
+        --purple: #a855f7;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        padding: 0;
+    }
+
+    @media print {
+        body { background: white; color: #1a1a2e; padding: 20px; }
+        .cover { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .no-print { display: none !important; }
+        section { break-inside: avoid; page-break-inside: avoid; }
+        .data-table th { background: #e8e8f0 !important; color: #1a1a2e !important; -webkit-print-color-adjust: exact; }
+    }
+
+    /* Cover Page */
+    .cover {
+        background: linear-gradient(160deg, #0a0a1a 0%, #1a1040 40%, #0a0a2a 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 60px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    .cover::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(ellipse at 30% 50%, rgba(0,212,255,0.06) 0%, transparent 50%),
+                    radial-gradient(ellipse at 70% 50%, rgba(255,215,0,0.04) 0%, transparent 50%);
+        animation: none;
+    }
+    .cover-icon { font-size: 48px; color: var(--gold); margin-bottom: 30px; position: relative; }
+    .cover h1 {
+        font-size: 42px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), var(--gold));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+        position: relative;
+        max-width: 800px;
+    }
+    .cover .subtitle {
+        font-size: 18px;
+        color: var(--text-muted);
+        margin-bottom: 50px;
+        position: relative;
+    }
+    .cover-stats {
+        display: flex;
+        gap: 40px;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+    }
+    .cover-stat {
+        text-align: center;
+        padding: 20px 30px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+    }
+    .cover-stat .num {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--accent);
+        display: block;
+    }
+    .cover-stat .lbl {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+    .cover-meta {
+        margin-top: 50px;
+        font-size: 13px;
+        color: var(--text-muted);
+        position: relative;
+    }
+
+    /* Print toolbar */
+    .print-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(20,20,48,0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 1000;
+    }
+    .print-bar-title { font-weight: 600; color: var(--accent); font-size: 14px; }
+    .print-bar button {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+    .btn-print { background: var(--gold); color: #000; margin-left: 10px; }
+    .btn-print:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,215,0,0.3); }
+    .btn-back { background: rgba(255,255,255,0.1); color: var(--text); }
+    .btn-back:hover { background: rgba(255,255,255,0.2); }
+
+    /* Content */
+    .report-body {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 80px 40px 60px;
+    }
+
+    section {
+        margin-bottom: 50px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    section .section-header {
+        padding: 20px 30px;
+        background: var(--bg-section);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    section .section-header i {
+        font-size: 18px;
+        color: var(--gold);
+    }
+    section .section-header h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+    }
+    section .section-body {
+        padding: 25px 30px;
+    }
+    section .section-body h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 25px 0 12px;
+    }
+    section .section-body h3:first-child { margin-top: 0; }
+
+    /* Report text (summary) */
+    .report-text {
+        font-size: 15px;
+        line-height: 1.8;
+        color: var(--text);
+    }
+    .report-text h1, .report-text h2, .report-text h3 {
+        color: var(--accent);
+        margin: 25px 0 12px;
+    }
+    .report-text h2 { font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .report-text h3 { font-size: 16px; }
+    .report-text strong { color: var(--gold); }
+    .report-text code { background: rgba(0,212,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .report-text ul, .report-text ol { margin: 10px 0 10px 25px; }
+    .report-text li { margin-bottom: 6px; }
+    .report-text p { margin-bottom: 12px; }
+
+    /* Tables */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+        font-size: 13px;
+    }
+    .data-table th {
+        background: var(--bg-section);
+        color: var(--accent);
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border);
+    }
+    .data-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(42,42,90,0.5);
+        vertical-align: top;
+    }
+    .data-table tr:hover td { background: rgba(0,212,255,0.03); }
+    .data-table tr.suspicious td { background: rgba(255,71,87,0.08); }
+
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); }
+
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .badge-alta { background: rgba(255,71,87,0.2); color: #ff6b6b; }
+    .badge-media { background: rgba(255,215,0,0.2); color: #ffd700; }
+    .badge-bassa { background: rgba(46,213,115,0.2); color: #2ed573; }
+    .badge-high { background: rgba(255,71,87,0.2); color: #ff6b6b; }
+    .badge-medium { background: rgba(255,215,0,0.2); color: #ffd700; }
+    .badge-low { background: rgba(46,213,115,0.2); color: #2ed573; }
+
+    /* Evidence blocks */
+    .evidence-block {
+        background: var(--bg-section);
+        border-left: 3px solid var(--gold);
+        padding: 16px 20px;
+        margin: 12px 0;
+        border-radius: 0 10px 10px 0;
+    }
+    .evidence-doc { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+    .evidence-content { font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+    .evidence-importance { font-size: 12px; color: var(--gold); font-weight: 500; }
+
+    /* Timeline */
+    .timeline-report { position: relative; padding-left: 30px; }
+    .timeline-report::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+    }
+    .tl-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding: 14px 18px;
+        background: var(--bg-section);
+        border-radius: 10px;
+    }
+    .tl-item::before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 18px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid var(--bg);
+    }
+    .tl-date { font-weight: 700; color: var(--accent); font-size: 13px; margin-bottom: 4px; }
+    .tl-event { font-size: 14px; }
+    .tl-source { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Red flags */
+    .red-flag {
+        background: rgba(255,71,87,0.08);
+        border-left: 3px solid var(--red);
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 14px;
+    }
+    .rf-severity {
+        display: inline-block;
+        background: rgba(255,71,87,0.2);
+        color: var(--red);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-right: 8px;
+    }
+
+    /* Alias tags */
+    .alias-tag {
+        display: inline-block;
+        background: rgba(168,85,247,0.15);
+        color: var(--purple);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        margin: 2px;
+    }
+
+    /* Coded blocks */
+    .coded-block {
+        background: var(--bg-section);
+        border-left: 3px solid var(--purple);
+        padding: 16px 20px;
+        margin: 12px 0;
+        border-radius: 0 10px 10px 0;
+    }
+    .coded-text { font-style: italic; color: var(--text); margin-bottom: 8px; font-size: 14px; }
+    .coded-interp { font-size: 13px; margin-bottom: 6px; }
+    .coded-meta { font-size: 12px; display: flex; align-items: center; gap: 10px; }
+
+    /* Search tags */
+    .search-tags-report { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .stag {
+        display: inline-block;
+        background: rgba(0,212,255,0.1);
+        border: 1px solid rgba(0,212,255,0.3);
+        color: var(--accent);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+    .empty { color: var(--text-muted); font-style: italic; padding: 20px 0; }
+
+    /* Document links - clickable EFTA IDs */
+    .doc-link {
+        color: var(--accent);
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(0,212,255,0.4);
+        padding-bottom: 1px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .doc-link:hover {
+        color: var(--gold);
+        border-bottom-color: var(--gold);
+        background: rgba(255,215,0,0.08);
+        border-radius: 3px;
+        padding: 1px 4px;
+        margin: 0 -4px;
+    }
+    @media print {
+        .doc-link { color: #1a73e8 !important; border-bottom: none; }
+    }
+
+    /* Footer */
+    .report-footer {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-muted);
+        font-size: 12px;
+        border-top: 1px solid var(--border);
+        margin-top: 40px;
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Print toolbar -->
+<div class="print-bar no-print">
+    <span class="print-bar-title"><i class="fas fa-file-alt"></i> Investigation Report</span>
+    <div>
+        <button class="btn-back" onclick="window.close()"><i class="fas fa-arrow-left"></i> Back</button>
+        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print / Save PDF</button>
+    </div>
+</div>
+
+<!-- Cover Page -->
+<div class="cover">
+    <div class="cover-icon"><i class="fas fa-user-secret"></i></div>
+    <h1>${esc(objective)}</h1>
+    <div class="subtitle">Epstein Files Investigation Report</div>
+    <div class="cover-stats">
+        <div class="cover-stat"><span class="num">${r.documents_found || 0}</span><span class="lbl">Documents</span></div>
+        <div class="cover-stat"><span class="num">${people.length}</span><span class="lbl">People</span></div>
+        <div class="cover-stat"><span class="num">${connections.length}</span><span class="lbl">Connections</span></div>
+        <div class="cover-stat"><span class="num">${evidence.length}</span><span class="lbl">Evidence</span></div>
+        <div class="cover-stat"><span class="num">${timeline.length}</span><span class="lbl">Events</span></div>
+    </div>
+    <div class="cover-meta">
+        <p>Generated: ${date}</p>
+        <p>Investigation ID: ${esc(r.investigation_id || 'N/A')}</p>
+        <p>Source: Epstein Files - U.S. Department of Justice</p>
+    </div>
+</div>
+
+<div class="report-body">
+
+    <!-- Executive Summary -->
+    <section>
+        <div class="section-header"><i class="fas fa-file-alt"></i><h2>Executive Summary</h2></div>
+        <div class="section-body report-text"><p>${md(r.report || 'No report generated')}</p></div>
+    </section>
+
+    <!-- People -->
+    <section>
+        <div class="section-header"><i class="fas fa-users"></i><h2>People Identified (${people.length})</h2></div>
+        <div class="section-body">${peopleHtml}</div>
+    </section>
+
+    <!-- Connections -->
+    <section>
+        <div class="section-header"><i class="fas fa-project-diagram"></i><h2>Connections (${connections.length})</h2></div>
+        <div class="section-body">${connectionsHtml}</div>
+    </section>
+
+    <!-- Evidence -->
+    <section>
+        <div class="section-header"><i class="fas fa-gavel"></i><h2>Significant Evidence (${evidence.length})</h2></div>
+        <div class="section-body">${evidenceHtml}</div>
+    </section>
+
+    <!-- Timeline -->
+    <section>
+        <div class="section-header"><i class="fas fa-clock"></i><h2>Timeline (${timeline.length} events)</h2></div>
+        <div class="section-body">${timelineHtml}</div>
+    </section>
+
+    <!-- Financial Analysis -->
+    <section>
+        <div class="section-header"><i class="fas fa-university"></i><h2>Financial Analysis</h2></div>
+        <div class="section-body">${financeHtml}</div>
+    </section>
+
+    <!-- Identities & Aliases -->
+    <section>
+        <div class="section-header"><i class="fas fa-fingerprint"></i><h2>Identities & Aliases</h2></div>
+        <div class="section-body">${identitiesHtml}</div>
+    </section>
+
+    <!-- Coded Language -->
+    <section>
+        <div class="section-header"><i class="fas fa-key"></i><h2>Coded Language</h2></div>
+        <div class="section-body">${cipherHtml}</div>
+    </section>
+
+    <!-- Next Steps -->
+    <section>
+        <div class="section-header"><i class="fas fa-lightbulb"></i><h2>Next Steps & Follow-Up</h2></div>
+        <div class="section-body">${followUpHtml}</div>
+    </section>
+
+    <div class="report-footer">
+        <p><strong>Epstein Files Investigation Platform</strong></p>
+        <p>This report was generated automatically from investigation data.</p>
+        <p>All documents referenced are from the U.S. Department of Justice Epstein Files archive.</p>
+        <p>${date}</p>
+    </div>
+</div>
+
+</body>
+</html>`;
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(html);
+            reportWindow.document.close();
+        }
+
+        function downloadReportMarkdown() {
+            const r = currentResultData;
+            if (!r) { alert('No investigation data available'); return; }
+
+            const date = new Date().toISOString().split('T')[0];
+            const objective = r.objective || 'Investigation';
+            let md = `# Investigation Report: ${objective}\n\n`;
+            md += `**Date:** ${new Date().toLocaleString()}\n`;
+            md += `**Investigation ID:** ${r.investigation_id || 'N/A'}\n`;
+            md += `**Documents Analyzed:** ${r.documents_found || 0}\n\n`;
+            md += `---\n\n`;
+
+            // Summary
+            md += `## Executive Summary\n\n${r.report || 'No report generated'}\n\n---\n\n`;
+
+            // People
+            const people = r.analysis?.key_people || [];
+            if (people.length > 0) {
+                md += `## People Identified (${people.length})\n\n`;
+                md += `| Name | Role | Relevance | Evidence |\n|------|------|-----------|----------|\n`;
+                people.forEach(p => md += `| **${p.name}** | ${p.role || ''} | ${p.relevance || ''} | ${p.evidence_doc || ''} |\n`);
+                md += `\n`;
+            }
+
+            // Connections
+            const connections = r.analysis?.connections || [];
+            if (connections.length > 0) {
+                md += `## Connections (${connections.length})\n\n`;
+                md += `| From | To | Type | Evidence |\n|------|-----|------|----------|\n`;
+                connections.forEach(c => md += `| ${c.from} | ${c.to} | ${c.type || ''} | ${c.evidence || ''} |\n`);
+                md += `\n`;
+            }
+
+            // Evidence
+            const evidence = r.analysis?.significant_evidence || [];
+            if (evidence.length > 0) {
+                md += `## Significant Evidence (${evidence.length})\n\n`;
+                evidence.forEach(e => md += `### ${e.document || 'Document'}\n${e.content || ''}\n*${e.importance || ''}*\n\n`);
+            }
+
+            // Timeline
+            const timeline = r.analysis?.timeline || [];
+            if (timeline.length > 0) {
+                md += `## Timeline\n\n`;
+                timeline.forEach(t => md += `- **${t.date || '?'}**: ${t.event || ''} ${t.source ? `[${t.source}]` : ''}\n`);
+                md += `\n`;
+            }
+
+            // Finance
+            const banking = r.banking || {};
+            if ((banking.transactions||[]).length > 0 || (banking.banks||[]).length > 0) {
+                md += `## Financial Analysis\n\n`;
+                (banking.banks||[]).forEach(b => md += `- **${b.name}**: ${b.role} [${b.evidence}]\n`);
+                if ((banking.transactions||[]).length > 0) {
+                    md += `\n| From | To | Amount | Date | Evidence |\n|------|-----|--------|------|----------|\n`;
+                    (banking.transactions||[]).forEach(t => md += `| ${t.from_entity} | ${t.to_entity} | ${t.amount} | ${t.date || ''} | ${t.evidence || ''} |\n`);
+                }
+                md += `\n`;
+            }
+
+            // Follow-up
+            const followUp = r.follow_up || {};
+            if ((followUp.critical_questions||[]).length > 0 || (followUp.leads_to_follow||[]).length > 0) {
+                md += `## Next Steps\n\n`;
+                (followUp.critical_questions||[]).forEach((q,i) => md += `${i+1}. ${q}\n`);
+                md += `\n`;
+                (followUp.leads_to_follow||[]).forEach(l => md += `- ${l}\n`);
+                md += `\n`;
+            }
+
+            md += `---\n*Generated by Epstein Files Investigation Platform*\n`;
+
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `investigation_report_${date}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadReportJSON() {
+            const r = currentResultData;
+            if (!r) { alert('No investigation data available'); return; }
+
+            const date = new Date().toISOString().split('T')[0];
+            const data = JSON.stringify(r, null, 2);
+            const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `investigation_data_${date}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSavedInvestigations);
+    </script>
+</body>
+</html>

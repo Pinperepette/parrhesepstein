@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parrhesepstein — Speaking Truth Without Fear</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --purple: #a855f7;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .homepage {
+            padding: 40px 40px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            text-align: center;
+            padding: 50px 0 40px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .hero .subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ===== STATS BAR ===== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .stat-item {
+            background: rgba(18, 18, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 14px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .stat-item .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.cyan { background: rgba(0, 212, 255, 0.1); color: var(--accent); }
+        .stat-icon.orange { background: rgba(255, 165, 2, 0.1); color: var(--warning); }
+        .stat-icon.green { background: rgba(46, 213, 115, 0.1); color: var(--success); }
+        .stat-icon.purple { background: rgba(168, 85, 247, 0.1); color: var(--purple); }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ===== SECTIONS ===== */
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        .section-title i {
+            margin-right: 8px;
+        }
+
+        /* ===== CARD GRID ===== */
+        .card-grid {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .card-grid.cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .card-grid.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .card-grid.cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* ===== FEATURE CARD ===== */
+        .feature-card {
+            background: rgba(18, 18, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 28px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 212, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Category accent colors */
+        .feature-card.cat-primary::before { background: linear-gradient(90deg, var(--accent), transparent); }
+        .feature-card.cat-primary:hover { border-color: rgba(0, 212, 255, 0.4); box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1); }
+
+        .feature-card.cat-analysis::before { background: linear-gradient(90deg, var(--purple), transparent); }
+        .feature-card.cat-analysis:hover { border-color: rgba(168, 85, 247, 0.4); box-shadow: 0 8px 32px rgba(168, 85, 247, 0.1); }
+
+        .feature-card.cat-data::before { background: linear-gradient(90deg, var(--success), transparent); }
+        .feature-card.cat-data:hover { border-color: rgba(46, 213, 115, 0.4); box-shadow: 0 8px 32px rgba(46, 213, 115, 0.1); }
+
+        .feature-card.cat-explore::before { background: linear-gradient(90deg, var(--warning), transparent); }
+        .feature-card.cat-explore:hover { border-color: rgba(255, 165, 2, 0.4); box-shadow: 0 8px 32px rgba(255, 165, 2, 0.1); }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .card-icon.cyan { background: rgba(0, 212, 255, 0.12); color: var(--accent); }
+        .card-icon.purple { background: rgba(168, 85, 247, 0.12); color: var(--purple); }
+        .card-icon.green { background: rgba(46, 213, 115, 0.12); color: var(--success); }
+        .card-icon.orange { background: rgba(255, 165, 2, 0.12); color: var(--warning); }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Large cards have icon + text in a row */
+        .feature-card.large {
+            padding: 32px;
+        }
+
+        .feature-card.large .card-header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .feature-card.large .card-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 26px;
+        }
+
+        /* ===== FOOTER ===== */
+        .homepage-footer {
+            text-align: center;
+            padding: 32px 0 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .homepage-footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .homepage-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .homepage-footer .pirate-icon {
+            font-size: 18px;
+            margin-right: 6px;
+        }
+
+        /* ===== FADE-IN ANIMATIONS ===== */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.1s; }
+        .delay-3 { animation-delay: 0.15s; }
+        .delay-4 { animation-delay: 0.2s; }
+        .delay-5 { animation-delay: 0.25s; }
+        .delay-6 { animation-delay: 0.3s; }
+        .delay-7 { animation-delay: 0.35s; }
+        .delay-8 { animation-delay: 0.4s; }
+        .delay-9 { animation-delay: 0.45s; }
+        .delay-10 { animation-delay: 0.5s; }
+        .delay-11 { animation-delay: 0.55s; }
+        .delay-12 { animation-delay: 0.6s; }
+        .delay-13 { animation-delay: 0.65s; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .card-grid.cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .card-grid.cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .homepage {
+                padding: 20px 16px 40px;
+            }
+            .hero { padding: 30px 0 24px; }
+            .hero h1 { font-size: 32px; }
+            .hero .subtitle { font-size: 14px; }
+            .hero-icon { font-size: 48px; }
+            .card-grid.cols-2,
+            .card-grid.cols-3,
+            .card-grid.cols-4 {
+                grid-template-columns: 1fr;
+            }
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+
+    <div class="homepage">
+
+        <!-- HERO -->
+        <div class="hero fade-up">
+            <h1>Parrhesepstein</h1>
+            <p class="subtitle">Speaking truth without fear</p>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="stats-bar">
+            <div class="stat-item fade-up delay-1">
+                <div class="stat-icon cyan"><i class="fas fa-users-cog"></i></div>
+                <div>
+                    <div class="stat-value" id="statInvestigations">—</div>
+                    <div class="stat-label">Investigations</div>
+                </div>
+            </div>
+            <div class="stat-item fade-up delay-2">
+                <div class="stat-icon orange"><i class="fas fa-user-friends"></i></div>
+                <div>
+                    <div class="stat-value" id="statPeople">—</div>
+                    <div class="stat-label">People</div>
+                </div>
+            </div>
+            <div class="stat-item fade-up delay-3">
+                <div class="stat-icon green"><i class="fas fa-file-alt"></i></div>
+                <div>
+                    <div class="stat-value" id="statDocuments">—</div>
+                    <div class="stat-label">Indexed Documents</div>
+                </div>
+            </div>
+            <div class="stat-item fade-up delay-4">
+                <div class="stat-icon purple"><i class="fas fa-link"></i></div>
+                <div>
+                    <div class="stat-value" id="statConnections">—</div>
+                    <div class="stat-label">Connections</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRIMARY ACTIONS -->
+        <div class="section-title fade-up delay-5"><i class="fas fa-crosshairs"></i>Investigate</div>
+        <div class="card-grid cols-2">
+            <a href="/investigation" class="feature-card large cat-primary fade-up delay-5">
+                <div class="card-header">
+                    <div class="card-icon cyan"><i class="fas fa-users-cog"></i></div>
+                    <div>
+                        <div class="card-title">Investigation Crew</div>
+                        <div class="card-desc">Launch multi-agent AI investigation with 8 specialized agents</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- ANALYSIS TOOLS -->
+        <div class="section-title fade-up delay-7"><i class="fas fa-flask"></i>Analysis Tools</div>
+        <div class="card-grid cols-4">
+            <a href="/network" class="feature-card cat-analysis fade-up delay-7">
+                <div class="card-icon purple"><i class="fas fa-project-diagram"></i></div>
+                <div class="card-title">Network Map</div>
+                <div class="card-desc">Map relationships and connections between entities</div>
+            </a>
+            <a href="/influence" class="feature-card cat-analysis fade-up delay-9">
+                <div class="card-icon purple"><i class="fas fa-chess-queen"></i></div>
+                <div class="card-title">Influence</div>
+                <div class="card-desc">Analyze networks of power and influence</div>
+            </a>
+            <a href="/archive" class="feature-card cat-analysis fade-up delay-10">
+                <div class="card-icon purple"><i class="fas fa-brain"></i></div>
+                <div class="card-title">Archive AI</div>
+                <div class="card-desc">RAG-powered Q&A over indexed documents</div>
+            </a>
+        </div>
+
+        <!-- DATA & MANAGEMENT -->
+        <div class="section-title fade-up delay-11"><i class="fas fa-database"></i>Data & Management</div>
+        <div class="card-grid cols-4">
+            <a href="/people" class="feature-card cat-data fade-up delay-11">
+                <div class="card-icon green"><i class="fas fa-user-friends"></i></div>
+                <div class="card-title">People</div>
+                <div class="card-desc">Database of investigated persons and profiles</div>
+            </a>
+            <a href="/merge" class="feature-card cat-data fade-up delay-11">
+                <div class="card-icon green"><i class="fas fa-code-merge"></i></div>
+                <div class="card-title">Merge</div>
+                <div class="card-desc">Combine multiple investigations into unified reports</div>
+            </a>
+            <a href="/sintesi" class="feature-card cat-data fade-up delay-12">
+                <div class="card-icon green"><i class="fas fa-layer-group"></i></div>
+                <div class="card-title">Synthesis</div>
+                <div class="card-desc">AI synthesis across saved analyses</div>
+            </a>
+            <a href="/flights" class="feature-card cat-data fade-up delay-12">
+                <div class="card-icon green"><i class="fas fa-plane"></i></div>
+                <div class="card-title">Flights</div>
+                <div class="card-desc">Epstein flight logs and passenger data</div>
+            </a>
+        </div>
+
+        <!-- EXPLORE -->
+        <div class="section-title fade-up delay-13"><i class="fas fa-compass"></i>Explore</div>
+        <div class="card-grid cols-3">
+            <a href="/gallery" class="feature-card cat-explore fade-up delay-13">
+                <div class="card-icon orange"><i class="fas fa-images"></i></div>
+                <div class="card-title">Gallery</div>
+                <div class="card-desc">Browse and view extracted document images</div>
+            </a>
+            <a href="/map" class="feature-card cat-explore fade-up delay-13">
+                <div class="card-icon orange"><i class="fas fa-map-marked-alt"></i></div>
+                <div class="card-title">World Map</div>
+                <div class="card-desc">Geographic visualization of connections</div>
+            </a>
+            <a href="/jmail" class="feature-card cat-explore fade-up delay-13">
+                <div class="card-icon orange"><i class="fas fa-envelope"></i></div>
+                <div class="card-title">JMail</div>
+                <div class="card-desc">Browse Epstein email archive</div>
+            </a>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="homepage-footer fade-up delay-13">
+            <span class="pirate-icon"><i class="fas fa-skull-crossbones"></i></span>
+            Built by <strong>The Pirate</strong> — <a href="https://github.com/pinperepette" target="_blank">@Pinperepette</a>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/dashboard/stats');
+                const data = await res.json();
+                animateCounter('statInvestigations', data.investigations_count || 0);
+                animateCounter('statPeople', data.people_count || 0);
+                animateCounter('statDocuments', data.documents_local || 0);
+                animateCounter('statConnections', data.connections_count || 0);
+            } catch(e) {
+                console.error('Dashboard stats error:', e);
+            }
+        }
+
+        function animateCounter(id, target) {
+            const el = document.getElementById(id);
+            if (!el || target === 0) { el.textContent = target; return; }
+
+            const duration = 1000;
+            const steps = 40;
+            const stepTime = duration / steps;
+            let current = 0;
+            const increment = target / steps;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    el.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    el.textContent = Math.floor(current).toLocaleString();
+                }
+            }, stepTime);
+        }
+
+        loadStats();
+    </script>
+</body>
+</html>

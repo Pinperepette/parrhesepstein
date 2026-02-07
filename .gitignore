@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Runtime data (created by the app)
+chroma_db/
+documents/
+saved_analyses/
+
+# Data files (user must provide)
+epstein_emails.parquet
+
+# Large assets
+icon.png
+
+# Duplicate data file inside app/
+app/epstein_flights_data.json

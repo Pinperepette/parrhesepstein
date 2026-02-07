@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Archive - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo i { font-size: 28px; color: #a55eea; }
+        .logo h1 {
+            font-size: 24px; font-weight: 600;
+            background: linear-gradient(135deg, #a55eea, #fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .logo span { font-size: 12px; color: var(--text-muted); display: block; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 40px; }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex; gap: 24px; padding: 16px 24px;
+            background: var(--bg-card); border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .stats-bar .stat { text-align: center; }
+        .stats-bar .stat-num { font-size: 24px; font-weight: 700; color: var(--accent); }
+        .stats-bar .stat-lbl { font-size: 11px; color: var(--text-muted); }
+
+        /* Search section */
+        .search-section {
+            background: var(--bg-card); border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            padding: 24px; margin-bottom: 24px;
+        }
+
+        .search-row { display: flex; gap: 12px; margin-bottom: 16px; }
+
+        .search-input {
+            flex: 1; padding: 12px 16px;
+            background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; color: #fff; font-size: 15px;
+        }
+        .search-input:focus { outline: none; border-color: var(--accent); }
+
+        .btn {
+            padding: 12px 24px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 14px; font-weight: 600;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-input); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { border-color: var(--accent); }
+        .btn-success { background: var(--success); color: #000; }
+        .btn-success:hover { filter: brightness(1.1); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Tabs */
+        .tab-row { display: flex; gap: 0; margin-bottom: 0; }
+        .tab-btn {
+            padding: 10px 20px; background: transparent; border: none;
+            color: var(--text-muted); cursor: pointer; font-size: 14px;
+            border-bottom: 2px solid transparent; transition: all 0.2s;
+        }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn:hover { color: #fff; }
+
+        /* Results */
+        .results-area { margin-top: 24px; }
+
+        .result-card {
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px; padding: 16px 20px; margin-bottom: 12px;
+            transition: border-color 0.2s; animation: fadeInUp 0.3s ease-out both;
+        }
+        .result-card:hover { border-color: rgba(0, 212, 255, 0.2); }
+
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .result-id { font-weight: 600; color: var(--accent); font-size: 14px; }
+        .result-score {
+            background: rgba(0, 212, 255, 0.1); color: var(--accent);
+            padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .result-text { color: #bbb; font-size: 13px; line-height: 1.6; }
+
+        /* AI Answer */
+        .ai-answer {
+            background: var(--bg-card); border: 1px solid rgba(165, 94, 234, 0.2);
+            border-radius: 12px; padding: 24px; margin-top: 24px;
+        }
+        .ai-answer h3 { color: #a55eea; margin-bottom: 16px; font-size: 16px; }
+        .ai-answer .answer-content {
+            color: var(--text); font-size: 14px; line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        .ai-answer .sources { margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .ai-answer .sources span { font-size: 12px; color: var(--text-muted); }
+        .ai-answer .source-tag {
+            display: inline-block; background: rgba(0, 212, 255, 0.1);
+            color: var(--accent); padding: 2px 8px; border-radius: 6px;
+            font-size: 11px; margin: 2px 4px;
+        }
+
+        /* Index section */
+        .index-section {
+            background: var(--bg-card); border-radius: 12px;
+            border: 1px solid rgba(46, 213, 115, 0.15);
+            padding: 20px 24px; margin-top: 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .index-info { color: var(--text-muted); font-size: 13px; }
+        .index-info strong { color: var(--text); }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%; height: 6px; background: var(--bg-input);
+            border-radius: 3px; margin-top: 12px; overflow: hidden; display: none;
+        }
+        .progress-bar .progress-fill {
+            height: 100%; background: var(--success);
+            border-radius: 3px; transition: width 0.3s;
+        }
+
+        .progress-text { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: none; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+        .loading i { font-size: 24px; margin-bottom: 12px; display: block; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-brain"></i>
+            <h1>Smart Archive<span>Semantic Search & AI Q&A</span></h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat">
+                <div class="stat-num" id="statDocs">-</div>
+                <div class="stat-lbl">Documents</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" id="statChunks">-</div>
+                <div class="stat-lbl">Chunks</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" id="statLocal">-</div>
+                <div class="stat-lbl">Local Files</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-section">
+            <div class="search-row">
+                <input type="text" class="search-input" id="searchInput"
+                       placeholder="Search indexed documents..." autofocus>
+                <button class="btn btn-primary" id="btnSearch" onclick="doSearch()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+
+            <div class="tab-row">
+                <button class="tab-btn active" onclick="setMode('semantic', this)">
+                    <i class="fas fa-vector-square"></i> Semantic
+                </button>
+                <button class="tab-btn" onclick="setMode('ask', this)">
+                    <i class="fas fa-robot"></i> AI
+                </button>
+                <button class="tab-btn" onclick="setMode('browse', this)">
+                    <i class="fas fa-folder-open"></i> Browse Local
+                </button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-area" id="resultsArea"></div>
+
+        <!-- Index All -->
+        <div class="index-section">
+            <div class="index-info">
+                <i class="fas fa-database"></i>
+                <strong id="indexedCount">0</strong> documents indexed out of <strong id="localCount">0</strong> local
+            </div>
+            <button class="btn btn-success" id="btnIndexAll" onclick="indexAll()">
+                <i class="fas fa-sync"></i> Index All Local Documents
+            </button>
+        </div>
+        <div class="progress-bar" id="indexProgress">
+            <div class="progress-fill" id="indexFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="indexText"></div>
+    </div>
+
+    <script>
+        let currentMode = 'semantic';
+
+        function setMode(mode, btn) {
+            currentMode = mode;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const searchSection = document.querySelector('.search-row');
+            const resultsArea = document.getElementById('resultsArea');
+
+            if (mode === 'browse') {
+                searchSection.style.display = 'none';
+                loadLocalDocuments();
+            } else {
+                searchSection.style.display = 'flex';
+                resultsArea.innerHTML = '';
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/vectordb/stats');
+                const data = await res.json();
+                document.getElementById('statDocs').textContent = data.total_documents || 0;
+                document.getElementById('statChunks').textContent = data.total_chunks || 0;
+                document.getElementById('statLocal').textContent = data.local_documents || 0;
+                document.getElementById('indexedCount').textContent = data.total_documents || 0;
+                document.getElementById('localCount').textContent = data.local_documents || 0;
+            } catch(e) {
+                console.error('Stats error:', e);
+            }
+        }
+
+        // Search
+        async function doSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const area = document.getElementById('resultsArea');
+            area.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Searching...</div>';
+
+            document.getElementById('btnSearch').disabled = true;
+
+            try {
+                if (currentMode === 'semantic') {
+                    const res = await fetch('/api/semantic-search', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({query, n_results: 20})
+                    });
+                    const data = await res.json();
+                    renderSemanticResults(data.results || []);
+                } else {
+                    const res = await fetch('/api/archive/ask', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({question: query, n_context: 10})
+                    });
+                    const data = await res.json();
+                    renderAIAnswer(data);
+                }
+            } catch(e) {
+                area.innerHTML = `<div class="loading" style="color: var(--danger)"><i class="fas fa-exclamation-triangle"></i>Error: ${e.message}</div>`;
+            }
+
+            document.getElementById('btnSearch').disabled = false;
+        }
+
+        function renderSemanticResults(results) {
+            const area = document.getElementById('resultsArea');
+            if (!results.length) {
+                area.innerHTML = '<div class="loading"><i class="fas fa-inbox"></i>No results. Try indexing the documents.</div>';
+                return;
+            }
+
+            let html = `<div style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">${results.length} results found</div>`;
+
+            results.forEach((r, i) => {
+                const docId = r.metadata?.doc_id || r.title || 'N/A';
+                const score = (r.relevance * 100).toFixed(0);
+                const text = r.text || '';
+                const preview = text.length > 400 ? text.substring(0, 400) + '...' : text;
+
+                html += `
+                <div class="result-card" style="animation-delay: ${i * 0.05}s">
+                    <div class="result-header">
+                        <span class="result-id"><i class="fas fa-file-alt"></i> ${escapeHtml(docId)}</span>
+                        <span class="result-score">${score}%</span>
+                    </div>
+                    <div class="result-text">${escapeHtml(preview)}</div>
+                </div>`;
+            });
+
+            area.innerHTML = html;
+        }
+
+        function renderAIAnswer(data) {
+            const area = document.getElementById('resultsArea');
+
+            if (data.error) {
+                area.innerHTML = `<div class="loading" style="color: var(--danger)"><i class="fas fa-exclamation-triangle"></i>${escapeHtml(data.error)}</div>`;
+                return;
+            }
+
+            let sourcesHtml = '';
+            if (data.sources && data.sources.length) {
+                sourcesHtml = '<div class="sources"><span>Sources:</span> ';
+                data.sources.forEach(s => {
+                    sourcesHtml += `<span class="source-tag">${escapeHtml(s.doc_id)} (${(s.relevance * 100).toFixed(0)}%)</span>`;
+                });
+                sourcesHtml += '</div>';
+            }
+
+            area.innerHTML = `
+            <div class="ai-answer">
+                <h3><i class="fas fa-robot"></i> AI Answer</h3>
+                <div class="answer-content">${escapeHtml(data.answer || 'No answer')}</div>
+                ${sourcesHtml}
+            </div>`;
+        }
+
+        // Index all
+        async function indexAll() {
+            const btn = document.getElementById('btnIndexAll');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Indexing...';
+
+            const progressBar = document.getElementById('indexProgress');
+            const progressFill = document.getElementById('indexFill');
+            const progressText = document.getElementById('indexText');
+            progressBar.style.display = 'block';
+            progressText.style.display = 'block';
+
+            try {
+                const res = await fetch('/api/vectordb/index-all-local', {method: 'POST'});
+                const data = await res.json();
+                const jobId = data.job_id;
+
+                // Poll status
+                const poll = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(`/api/vectordb/index-all-local/${jobId}`);
+                        const status = await statusRes.json();
+
+                        progressText.textContent = status.progress || '';
+                        if (status.total > 0) {
+                            const pct = ((status.indexed + status.skipped) / status.total * 100).toFixed(0);
+                            progressFill.style.width = pct + '%';
+                        }
+
+                        if (status.status === 'completed' || status.status === 'error') {
+                            clearInterval(poll);
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-sync"></i> Index All Local Documents';
+
+                            if (status.status === 'completed') {
+                                progressText.textContent = `Completed! ${status.indexed} indexed, ${status.skipped} skipped`;
+                                progressFill.style.width = '100%';
+                            } else {
+                                progressText.textContent = 'Error: ' + (status.progress || '');
+                            }
+
+                            loadStats();
+                        }
+                    } catch(e) {
+                        console.error('Poll error:', e);
+                    }
+                }, 1000);
+            } catch(e) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync"></i> Index All Local Documents';
+                progressText.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        // Browse local documents
+        async function loadLocalDocuments() {
+            const area = document.getElementById('resultsArea');
+            area.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Loading local documents...</div>';
+
+            try {
+                const [docsRes, statsRes] = await Promise.all([
+                    fetch('/api/documents'),
+                    fetch('/api/vectordb/stats')
+                ]);
+                const docsData = await docsRes.json();
+                const statsData = await statsRes.json();
+
+                const docs = docsData.documents || [];
+                if (!docs.length) {
+                    area.innerHTML = '<div class="loading"><i class="fas fa-inbox"></i>No local documents. Download documents from search.</div>';
+                    return;
+                }
+
+                // Get indexed doc IDs from vectordb (approximate check via stats)
+                let html = `<div style="color: var(--text-muted); margin-bottom: 12px; font-size: 13px;">${docs.length} local documents</div>`;
+
+                docs.forEach((doc, i) => {
+                    const size = doc.text_size ? (doc.text_size / 1024).toFixed(1) + ' KB' : '-';
+                    const hasPdf = doc.has_pdf ? '<span style="color: var(--danger); font-size: 11px; margin-left: 6px;"><i class="fas fa-file-pdf"></i> PDF</span>' : '';
+                    const hasText = doc.has_text ? '<span style="color: var(--success); font-size: 11px; margin-left: 6px;"><i class="fas fa-file-alt"></i> TXT</span>' : '';
+
+                    html += `
+                    <div class="result-card" style="animation-delay: ${i * 0.02}s; cursor: pointer;" onclick="viewDocument('${escapeHtml(doc.doc_id)}')">
+                        <div class="result-header">
+                            <span class="result-id"><i class="fas fa-file-alt"></i> ${escapeHtml(doc.doc_id)}</span>
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                ${hasPdf}${hasText}
+                                <span class="result-score">${size}</span>
+                            </span>
+                        </div>
+                    </div>`;
+                });
+
+                area.innerHTML = html;
+            } catch(e) {
+                area.innerHTML = `<div class="loading" style="color: var(--danger)"><i class="fas fa-exclamation-triangle"></i>Error: ${e.message}</div>`;
+            }
+        }
+
+        async function viewDocument(docId) {
+            const area = document.getElementById('resultsArea');
+            area.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i>Loading document...</div>';
+
+            try {
+                const res = await fetch(`/api/documents/${docId}/text`);
+                const data = await res.json();
+
+                if (data.error) {
+                    area.innerHTML = `<div class="loading" style="color: var(--danger)"><i class="fas fa-exclamation-triangle"></i>${escapeHtml(data.error)}</div>`;
+                    return;
+                }
+
+                area.innerHTML = `
+                <div style="margin-bottom: 12px;">
+                    <button class="btn btn-secondary" onclick="loadLocalDocuments()" style="font-size: 13px;">
+                        <i class="fas fa-arrow-left"></i> Back to list
+                    </button>
+                </div>
+                <div class="ai-answer">
+                    <h3><i class="fas fa-file-alt"></i> ${escapeHtml(docId)} <span style="font-size: 12px; color: var(--text-muted); font-weight: 400;">${data.length} characters</span></h3>
+                    <div class="answer-content" style="font-family: monospace; font-size: 12px; max-height: 70vh; overflow-y: auto; white-space: pre-wrap;">${escapeHtml(data.text)}</div>
+                </div>`;
+            } catch(e) {
+                area.innerHTML = `<div class="loading" style="color: var(--danger)"><i class="fas fa-exclamation-triangle"></i>Error: ${e.message}</div>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Enter key
+        document.getElementById('searchInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') doSearch();
+        });
+
+        // Init
+        loadStats();
+    </script>
+</body>
+</html>

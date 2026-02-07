@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Logs - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-gold: #ffd700;
+            --text: #e0e0e0;
+            --text-muted: #888;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i { font-size: 28px; color: var(--accent); }
+
+        .logo h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 30px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        .sidebar {
+            width: 350px;
+            background: var(--bg-card);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: var(--bg-input);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .list-section {
+            margin-bottom: 20px;
+        }
+
+        .list-section h4 {
+            color: var(--accent-gold);
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .list-item {
+            background: var(--bg-input);
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid var(--accent);
+        }
+
+        .list-item .count {
+            background: var(--accent);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .flight-popup {
+            min-width: 200px;
+        }
+
+        .flight-popup h4 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .flight-popup .route {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .flight-popup .passengers {
+            font-size: 12px;
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 12px;
+        }
+
+        .legend h4 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .flights-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .flight-item {
+            background: var(--bg-input);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .flight-item .date {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .flight-item .route {
+            margin: 5px 0;
+        }
+
+        .flight-item .passengers {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .flight-item:hover {
+            background: rgba(0, 212, 255, 0.15);
+            border-left-color: #00ff88;
+        }
+
+        .flight-item.selected {
+            background: rgba(0, 255, 136, 0.2);
+            border-left-color: #00ff88;
+        }
+
+        /* Flight details modal */
+        .flight-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flight-modal.active {
+            display: flex;
+        }
+
+        .flight-modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .flight-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .flight-modal-header h3 {
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        .flight-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .flight-modal-close:hover {
+            color: #ff6b6b;
+        }
+
+        .flight-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .flight-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .flight-detail-label {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .flight-detail-value {
+            color: var(--text);
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .flight-detail-value.highlight {
+            color: var(--accent-gold);
+        }
+
+        .flight-route-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: var(--bg-input);
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .flight-airport {
+            text-align: center;
+        }
+
+        .flight-airport-code {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .flight-airport-name {
+            font-size: 11px;
+            color: var(--text-muted);
+            max-width: 120px;
+        }
+
+        .flight-arrow {
+            color: var(--accent-gold);
+            font-size: 24px;
+        }
+
+        .flight-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .flight-modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-plane"></i>
+            <h1>Epstein Flight Logs</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="number" id="totalFlights">0</div>
+                    <div class="label">Total Flights</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="totalRoutes">0</div>
+                    <div class="label">Routes</div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search passenger or airport..." onkeyup="filterFlights()">
+            </div>
+
+            <div class="list-section">
+                <h4><i class="fas fa-route"></i> Top Routes</h4>
+                <div id="routesList"></div>
+            </div>
+
+            <div class="list-section">
+                <h4><i class="fas fa-users"></i> Passengers</h4>
+                <div id="passengersList"></div>
+            </div>
+
+            <div class="list-section">
+                <h4><i class="fas fa-list"></i> Filtered Flights</h4>
+                <div class="flights-list" id="flightsList"></div>
+            </div>
+        </aside>
+
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="legend">
+                <h4><i class="fas fa-info-circle"></i> Legend</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span>High frequency (50+ flights)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd700;"></div>
+                    <span>Medium frequency (20-50)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00d4ff;"></div>
+                    <span>Low frequency (<20)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flight details modal -->
+    <div class="flight-modal" id="flightModal" onclick="closeFlightModal(event)">
+        <div class="flight-modal-content" onclick="event.stopPropagation()">
+            <div class="flight-modal-header">
+                <h3><i class="fas fa-plane"></i> Flight Details</h3>
+                <button class="flight-modal-close" onclick="closeFlightModal()">&times;</button>
+            </div>
+
+            <div class="flight-route-visual">
+                <div class="flight-airport">
+                    <div class="flight-airport-code" id="modalFrom">---</div>
+                    <div class="flight-airport-name" id="modalFromName">Departure</div>
+                </div>
+                <div class="flight-arrow"><i class="fas fa-plane"></i></div>
+                <div class="flight-airport">
+                    <div class="flight-airport-code" id="modalTo">---</div>
+                    <div class="flight-airport-name" id="modalToName">Arrival</div>
+                </div>
+            </div>
+
+            <div class="flight-details">
+                <div class="flight-detail-row">
+                    <span class="flight-detail-label">Date</span>
+                    <span class="flight-detail-value highlight" id="modalDate">-</span>
+                </div>
+                <div class="flight-detail-row">
+                    <span class="flight-detail-label">Aircraft</span>
+                    <span class="flight-detail-value" id="modalAircraft">-</span>
+                </div>
+                <div class="flight-detail-row">
+                    <span class="flight-detail-label">Tail Number</span>
+                    <span class="flight-detail-value" id="modalTail">-</span>
+                </div>
+                <div class="flight-detail-row">
+                    <span class="flight-detail-label">Passengers</span>
+                    <span class="flight-detail-value highlight" id="modalPassengers">-</span>
+                </div>
+            </div>
+
+            <div class="flight-modal-actions">
+                <button class="btn-secondary" onclick="searchPassengersOnJmail()">
+                    <i class="fas fa-envelope"></i> Search on Jmail
+                </button>
+                <button class="btn-primary" onclick="showRouteOnMap()">
+                    <i class="fas fa-map-marked-alt"></i> Show on Map
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Airports loaded from API
+        let airports = {};
+        let map;
+        let flightsData = [];
+        let routeLayers = [];
+        let currentFilter = '';
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([30, -60], 4);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap, &copy; CartoDB',
+                maxZoom: 18
+            }).addTo(map);
+        }
+
+        // Load flight data
+        async function loadFlights() {
+            try {
+                const response = await fetch('/api/flights');
+                const data = await response.json();
+                flightsData = data.flights || [];
+
+                // Load airports from API
+                airports = data.airports || {};
+
+                // Highlight frequent airports
+                const highFreqAirports = ['TIST', 'PBI', 'TEB'];
+                highFreqAirports.forEach(code => {
+                    if (airports[code]) airports[code].color = '#ff6b6b';
+                });
+
+                // Save route counts globally
+                allRouteCounts = data.route_counts || {};
+
+                document.getElementById('totalFlights').textContent = flightsData.length;
+                document.getElementById('totalRoutes').textContent = Object.keys(allRouteCounts).length;
+
+                renderRoutes(allRouteCounts);
+                renderPassengers(data.passenger_counts);
+                renderFlightsList(flightsData);
+                drawRoutes(allRouteCounts);
+                addAirportMarkers();
+
+            } catch (error) {
+                console.error('Error loading flights:', error);
+            }
+        }
+
+        // Storage for all routes
+        let allRouteCounts = {};
+        let airportMarkers = [];
+        let selectedRoute = null;
+
+        // Draw routes on the map
+        function drawRoutes(routeCounts, highlightRoute = null) {
+            routeLayers.forEach(l => map.removeLayer(l));
+            routeLayers = [];
+
+            Object.entries(routeCounts).forEach(([route, count]) => {
+                const [from, to] = route.split('-');
+                const fromApt = airports[from];
+                const toApt = airports[to];
+
+                if (fromApt && toApt) {
+                    const isHighlighted = highlightRoute === route;
+                    const isFiltered = highlightRoute && !isHighlighted;
+
+                    let color = '#00d4ff';
+                    let weight = 1;
+                    let opacity = 0.7;
+
+                    if (count >= 50) {
+                        color = '#ff6b6b';
+                        weight = 4;
+                    } else if (count >= 20) {
+                        color = '#ffd700';
+                        weight = 2;
+                    }
+
+                    // If there is an active filter
+                    if (highlightRoute) {
+                        if (isHighlighted) {
+                            color = '#00ff88';
+                            weight = 6;
+                            opacity = 1;
+                        } else {
+                            opacity = 0.15;
+                            weight = 1;
+                        }
+                    }
+
+                    const line = L.polyline(
+                        [[fromApt.lat, fromApt.lon], [toApt.lat, toApt.lon]],
+                        {color: color, weight: weight, opacity: opacity, route: route}
+                    ).addTo(map);
+
+                    line.bindPopup(`
+                        <div class="flight-popup">
+                            <h4>${from} → ${to}</h4>
+                            <div class="route">${fromApt.name} → ${toApt.name}</div>
+                            <strong>${count} flights</strong>
+                            <br><br>
+                            <button onclick="filterRouteFlights('${from}', '${to}')" style="width:100%; padding:8px; background:#00d4ff; border:none; color:#000; border-radius:6px; cursor:pointer; font-weight:600;">
+                                <i class="fas fa-filter"></i> Filter these flights
+                            </button>
+                        </div>
+                    `);
+
+                    routeLayers.push(line);
+
+                    // Zoom on the highlighted route
+                    if (isHighlighted) {
+                        const bounds = L.latLngBounds([
+                            [fromApt.lat, fromApt.lon],
+                            [toApt.lat, toApt.lon]
+                        ]);
+                        map.fitBounds(bounds, {padding: [100, 100]});
+                    }
+                }
+            });
+        }
+
+        // Add airport markers
+        function addAirportMarkers(highlightAirports = null) {
+            airportMarkers.forEach(m => map.removeLayer(m));
+            airportMarkers = [];
+
+            Object.entries(airports).forEach(([code, apt]) => {
+                const isHighlighted = highlightAirports && highlightAirports.includes(code);
+                const isFiltered = highlightAirports && !isHighlighted;
+
+                const marker = L.circleMarker([apt.lat, apt.lon], {
+                    radius: isHighlighted ? 12 : 8,
+                    fillColor: isHighlighted ? '#00ff88' : (apt.color || '#00d4ff'),
+                    color: '#fff',
+                    weight: isHighlighted ? 3 : 2,
+                    opacity: isFiltered ? 0.3 : 1,
+                    fillOpacity: isFiltered ? 0.3 : 0.8
+                }).addTo(map);
+
+                marker.bindPopup(`
+                    <div style="min-width: 180px;">
+                        <strong style="font-size: 16px;">${code}</strong><br>
+                        <span style="color: #666;">${apt.name}</span>
+                        <br><br>
+                        <button onclick="filterAirportFlights('${code}')" style="width:100%; padding:8px; background:#00d4ff; border:none; color:#000; border-radius:6px; cursor:pointer; font-weight:600; font-size: 12px;">
+                            Filter flights to/from ${code}
+                        </button>
+                    </div>
+                `);
+                airportMarkers.push(marker);
+            });
+        }
+
+        // Select a route
+        function selectRoute(route) {
+            selectedRoute = route;
+            const [from, to] = route.split('-');
+            currentFilter = from;
+            document.getElementById('searchInput').value = route;
+            drawRoutes(allRouteCounts, route);
+            addAirportMarkers([from, to]);
+            renderFlightsList(flightsData);
+            showResetButton();
+        }
+
+        // Show reset button
+        function showResetButton() {
+            let btn = document.getElementById('resetBtn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'resetBtn';
+                btn.innerHTML = '<i class="fas fa-times"></i> Reset filter';
+                btn.style.cssText = 'background: #ff6b6b; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px; width: 100%;';
+                btn.onclick = resetFilter;
+                document.querySelector('.search-box').appendChild(btn);
+            }
+            btn.style.display = 'block';
+        }
+
+        // Reset filter
+        function resetFilter() {
+            selectedRoute = null;
+            currentFilter = '';
+            document.getElementById('searchInput').value = '';
+            drawRoutes(allRouteCounts);
+            addAirportMarkers();
+            renderFlightsList(flightsData);
+            map.setView([30, -60], 4);
+            const btn = document.getElementById('resetBtn');
+            if (btn) btn.style.display = 'none';
+        }
+
+        // Filter flights by specific route (from map popup)
+        function filterRouteFlights(from, to) {
+            // Find all flights for this route
+            const routeFlights = flightsData.filter(f => f.from === from && f.to === to);
+
+            if (routeFlights.length === 0) {
+                alert('No flights found for this route');
+                return;
+            }
+
+            // Show filtered flights in the sidebar with all details
+            const container = document.getElementById('flightsList');
+            const fromApt = airports[from] || {name: from};
+            const toApt = airports[to] || {name: to};
+
+            container.innerHTML = `
+                <div style="background: rgba(0, 212, 255, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--accent);">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 5px;">
+                        <i class="fas fa-route"></i> ${from} → ${to}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        ${fromApt.name} → ${toApt.name}
+                    </div>
+                    <div style="font-size: 14px; margin-top: 8px;">
+                        <strong>${routeFlights.length}</strong> flights found
+                    </div>
+                </div>
+                ${routeFlights.map((f, idx) => `
+                    <div class="flight-item" style="border-left-color: #00ff88;">
+                        <div class="date" style="font-size: 14px; color: var(--accent-gold);">${f.date}</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; font-size: 11px;">
+                            <div><span style="color: var(--text-muted);">Aircraft:</span><br>${f.aircraft || '-'}</div>
+                            <div><span style="color: var(--text-muted);">Tail:</span><br>${f.tail || '-'}</div>
+                        </div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <span style="color: var(--text-muted);">Passengers:</span>
+                            <div style="color: var(--accent-gold); font-weight: 600; margin-top: 4px;">${f.passengers || 'N/A'}</div>
+                        </div>
+                    </div>
+                `).join('')}
+                <button onclick="resetFilter()" style="width: 100%; padding: 10px; background: #ff6b6b; border: none; color: white; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                    <i class="fas fa-times"></i> Reset filter
+                </button>
+            `;
+
+            // Update filter
+            currentFilter = from;
+            document.getElementById('searchInput').value = `${from}-${to}`;
+            showResetButton();
+        }
+
+        // Filter flights by airport (from marker popup)
+        function filterAirportFlights(airportCode) {
+            // Find all flights to/from this airport
+            const airportFlights = flightsData.filter(f => f.from === airportCode || f.to === airportCode);
+
+            if (airportFlights.length === 0) {
+                alert('No flights found for this airport');
+                return;
+            }
+
+            const apt = airports[airportCode] || {name: airportCode};
+
+            // Show filtered flights in the sidebar
+            const container = document.getElementById('flightsList');
+            container.innerHTML = `
+                <div style="background: rgba(0, 212, 255, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--accent);">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--accent); margin-bottom: 5px;">
+                        <i class="fas fa-map-marker-alt"></i> ${airportCode}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        ${apt.name}
+                    </div>
+                    <div style="font-size: 14px; margin-top: 8px;">
+                        <strong>${airportFlights.length}</strong> flights found
+                    </div>
+                </div>
+                ${airportFlights.map((f, idx) => `
+                    <div class="flight-item" style="border-left-color: ${f.from === airportCode ? '#00ff88' : '#ffd700'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="date" style="font-size: 13px; color: var(--accent-gold);">${f.date}</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">${f.from === airportCode ? 'DEPARTURE' : 'ARRIVAL'}</span>
+                        </div>
+                        <div class="route" style="font-size: 14px; margin: 6px 0;">
+                            <i class="fas fa-plane"></i> ${f.from} → ${f.to}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px;">
+                            <div><span style="color: var(--text-muted);">Aircraft:</span><br>${f.aircraft || '-'}</div>
+                            <div><span style="color: var(--text-muted);">Tail:</span><br>${f.tail || '-'}</div>
+                        </div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <span style="color: var(--text-muted);">Passengers:</span>
+                            <div style="color: var(--accent-gold); font-weight: 600; margin-top: 4px;">${f.passengers || 'N/A'}</div>
+                        </div>
+                    </div>
+                `).join('')}
+                <button onclick="resetFilter()" style="width: 100%; padding: 10px; background: #ff6b6b; border: none; color: white; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                    <i class="fas fa-times"></i> Reset filter
+                </button>
+            `;
+
+            // Update filter e UI
+            currentFilter = airportCode;
+            document.getElementById('searchInput').value = airportCode;
+
+            // Highlight airport on the map
+            addAirportMarkers([airportCode]);
+
+            // Draw only routes involving this airport
+            routeLayers.forEach(l => map.removeLayer(l));
+            routeLayers = [];
+
+            const routesForAirport = {};
+            airportFlights.forEach(f => {
+                const route = `${f.from}-${f.to}`;
+                routesForAirport[route] = (routesForAirport[route] || 0) + 1;
+            });
+
+            Object.entries(routesForAirport).forEach(([route, count]) => {
+                const [from, to] = route.split('-');
+                const fromApt = airports[from];
+                const toApt = airports[to];
+                if (fromApt && toApt) {
+                    const line = L.polyline(
+                        [[fromApt.lat, fromApt.lon], [toApt.lat, toApt.lon]],
+                        {color: '#00ff88', weight: 3, opacity: 0.9}
+                    ).addTo(map);
+                    routeLayers.push(line);
+                }
+            });
+
+            showResetButton();
+        }
+
+        // Render route list
+        function renderRoutes(routeCounts) {
+            const container = document.getElementById('routesList');
+            const sorted = Object.entries(routeCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            container.innerHTML = sorted.map(([route, count]) => `
+                <div class="list-item" onclick="filterByRoute('${route}')">
+                    <span>${route}</span>
+                    <span class="count">${count}</span>
+                </div>
+            `).join('');
+        }
+
+        // Render passenger list
+        function renderPassengers(passengerCounts) {
+            const container = document.getElementById('passengersList');
+            const sorted = Object.entries(passengerCounts)
+                .filter(([name]) => !['JE', 'REPOSITION', 'NO PASSENGERS', 'EMPTY'].includes(name))
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            container.innerHTML = sorted.map(([name, count]) => `
+                <div class="list-item" onclick="filterByPassenger('${name}')">
+                    <span>${name}</span>
+                    <span class="count">${count}</span>
+                </div>
+            `).join('');
+        }
+
+        // Currently selected flight
+        let currentFlightData = null;
+
+        // Render flight list
+        function renderFlightsList(flights) {
+            const container = document.getElementById('flightsList');
+            const filtered = flights.filter(f => {
+                if (!currentFilter) return true;
+                const search = currentFilter.toLowerCase();
+                return (f.passengers || '').toLowerCase().includes(search) ||
+                       (f.from || '').toLowerCase().includes(search) ||
+                       (f.to || '').toLowerCase().includes(search);
+            }).slice(0, 50);
+
+            // Save filtered flights for access from double click
+            window.filteredFlights = filtered;
+
+            container.innerHTML = filtered.map((f, idx) => `
+                <div class="flight-item" data-index="${idx}">
+                    <div class="flight-item-header" onclick="previewFlight(${idx})" style="cursor: pointer;">
+                        <div class="date">${f.date}</div>
+                        <div class="route"><i class="fas fa-plane"></i> ${f.from} → ${f.to}</div>
+                        <div class="passengers">${f.passengers}</div>
+                    </div>
+                    <div class="flight-item-actions" id="actions-${idx}" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <button onclick="showFlightDetails(${idx})" style="width: 100%; padding: 8px; background: var(--accent); border: none; color: #000; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-filter"></i> Filter and show details
+                        </button>
+                    </div>
+                </div>
+            `).join('') || '<p style="color: var(--text-muted); padding: 10px;">No flights found</p>';
+        }
+
+        // Flight preview (click) - show route and details button
+        function previewFlight(index) {
+            const flight = window.filteredFlights[index];
+            if (!flight) return;
+
+            // Hide all action buttons
+            document.querySelectorAll('.flight-item-actions').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.flight-item').forEach(el => el.classList.remove('selected'));
+
+            // Show actions for this flight
+            document.getElementById(`actions-${index}`).style.display = 'block';
+            document.querySelector(`.flight-item[data-index="${index}"]`).classList.add('selected');
+
+            // Show route on the map
+            showFlightOnMap(flight.from, flight.to);
+        }
+
+        // Show flight details (double click) - filter and show only this flight
+        function showFlightDetails(index) {
+            const flight = window.filteredFlights[index];
+            if (!flight) return;
+
+            currentFlightData = flight;
+
+            // Show only this flight in the list
+            const container = document.getElementById('flightsList');
+            container.innerHTML = `
+                <div class="flight-item selected" style="border-left-color: #00ff88; background: rgba(0, 255, 136, 0.15);">
+                    <div class="date" style="font-size: 14px;">${flight.date}</div>
+                    <div class="route" style="font-size: 16px; margin: 10px 0;">
+                        <i class="fas fa-plane"></i> ${flight.from} → ${flight.to}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 11px;">
+                        <div><span style="color: var(--text-muted);">Aircraft:</span><br><strong>${flight.aircraft || '-'}</strong></div>
+                        <div><span style="color: var(--text-muted);">Tail:</span><br><strong>${flight.tail || '-'}</strong></div>
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <span style="color: var(--text-muted);">Passengers:</span><br>
+                        <strong style="color: var(--accent-gold);">${flight.passengers || '-'}</strong>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 8px;">
+                        <button onclick="searchPassengersOnJmail()" style="flex:1; padding: 8px; background: var(--bg-input); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; cursor: pointer; font-size: 11px;">
+                            <i class="fas fa-envelope"></i> Jmail
+                        </button>
+                        <button onclick="resetFilter()" style="flex:1; padding: 8px; background: #ff6b6b; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 11px;">
+                            <i class="fas fa-times"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Show only this route on the map
+            routeLayers.forEach(l => map.removeLayer(l));
+            routeLayers = [];
+
+            const fromApt = airports[flight.from];
+            const toApt = airports[flight.to];
+
+            if (fromApt && toApt) {
+                // Draw the highlighted route
+                const line = L.polyline(
+                    [[fromApt.lat, fromApt.lon], [toApt.lat, toApt.lon]],
+                    {color: '#00ff88', weight: 6, opacity: 1}
+                ).addTo(map);
+
+                line.bindPopup(`
+                    <div class="flight-popup">
+                        <h4>${flight.from} → ${flight.to}</h4>
+                        <div class="route">${fromApt.name} → ${toApt.name}</div>
+                        <div><strong>Date:</strong> ${flight.date}</div>
+                        <div><strong>Passengers:</strong> ${flight.passengers}</div>
+                    </div>
+                `).openPopup();
+
+                routeLayers.push(line);
+
+                // Zoom on the route
+                const bounds = L.latLngBounds([
+                    [fromApt.lat, fromApt.lon],
+                    [toApt.lat, toApt.lon]
+                ]);
+                map.fitBounds(bounds, {padding: [100, 100]});
+
+                // Highlight only these airports
+                addAirportMarkers([flight.from, flight.to]);
+            }
+
+            showResetButton();
+        }
+
+        // Close modal
+        function closeFlightModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('flightModal').classList.remove('active');
+        }
+
+        // Search passengers on Jmail
+        function searchPassengersOnJmail() {
+            if (!currentFlightData) return;
+            const passengers = currentFlightData.passengers || '';
+            if (passengers && passengers !== 'JE') {
+                window.open(`https://jmail.world/search?q=${encodeURIComponent(passengers)}`, '_blank');
+            } else {
+                alert('No specific passenger to search');
+            }
+        }
+
+        // Show route on map from modal
+        function showRouteOnMap() {
+            if (!currentFlightData) return;
+            closeFlightModal();
+            showFlightOnMap(currentFlightData.from, currentFlightData.to);
+        }
+
+        // Close modal con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFlightModal();
+            }
+        });
+
+        // Show single flight on the map
+        function showFlightOnMap(from, to) {
+            const route = `${from}-${to}`;
+            if (allRouteCounts[route]) {
+                selectRoute(route);
+            } else {
+                // If the exact route is not in top routes, highlight it anyway
+                const fromApt = airports[from];
+                const toApt = airports[to];
+                if (fromApt && toApt) {
+                    // Remove old routes
+                    routeLayers.forEach(l => map.removeLayer(l));
+                    routeLayers = [];
+
+                    // Draw only this route
+                    const line = L.polyline(
+                        [[fromApt.lat, fromApt.lon], [toApt.lat, toApt.lon]],
+                        {color: '#00ff88', weight: 6, opacity: 1}
+                    ).addTo(map);
+
+                    line.bindPopup(`
+                        <div class="flight-popup">
+                            <h4>${from} → ${to}</h4>
+                            <div class="route">${fromApt.name} → ${toApt.name}</div>
+                        </div>
+                    `).openPopup();
+
+                    routeLayers.push(line);
+
+                    // Zoom on the route
+                    const bounds = L.latLngBounds([
+                        [fromApt.lat, fromApt.lon],
+                        [toApt.lat, toApt.lon]
+                    ]);
+                    map.fitBounds(bounds, {padding: [100, 100]});
+
+                    addAirportMarkers([from, to]);
+                    showResetButton();
+                }
+            }
+        }
+
+        // Filters
+        function filterByRoute(route) {
+            selectRoute(route);
+        }
+
+        function filterByPassenger(name) {
+            currentFilter = name;
+            selectedRoute = null;
+            document.getElementById('searchInput').value = name;
+
+            // Find all flights for this passenger
+            const passengerFlights = flightsData.filter(f =>
+                (f.passengers || '').toLowerCase().includes(name.toLowerCase())
+            );
+
+            // Extract visited airports
+            const visitedAirports = new Set();
+            const passengerRoutes = {};
+            passengerFlights.forEach(f => {
+                if (f.from) visitedAirports.add(f.from);
+                if (f.to) visitedAirports.add(f.to);
+                const route = `${f.from}-${f.to}`;
+                passengerRoutes[route] = (passengerRoutes[route] || 0) + 1;
+            });
+
+            // Redraw map with only the passenger's routes
+            drawRoutesForPassenger(passengerRoutes);
+            addAirportMarkers(Array.from(visitedAirports));
+            renderFlightsList(flightsData);
+            showResetButton();
+
+            // Zoom to see all airports
+            if (visitedAirports.size > 0) {
+                const bounds = [];
+                visitedAirports.forEach(code => {
+                    if (airports[code]) {
+                        bounds.push([airports[code].lat, airports[code].lon]);
+                    }
+                });
+                if (bounds.length > 1) {
+                    map.fitBounds(bounds, {padding: [50, 50]});
+                }
+            }
+        }
+
+        // Draw routes for a specific passenger
+        function drawRoutesForPassenger(passengerRoutes) {
+            routeLayers.forEach(l => map.removeLayer(l));
+            routeLayers = [];
+
+            Object.entries(passengerRoutes).forEach(([route, count]) => {
+                const [from, to] = route.split('-');
+                const fromApt = airports[from];
+                const toApt = airports[to];
+
+                if (fromApt && toApt) {
+                    let color = '#00ff88';
+                    let weight = Math.min(2 + count, 8);
+
+                    const line = L.polyline(
+                        [[fromApt.lat, fromApt.lon], [toApt.lat, toApt.lon]],
+                        {color: color, weight: weight, opacity: 0.9}
+                    ).addTo(map);
+
+                    line.bindPopup(`
+                        <div class="flight-popup">
+                            <h4>${from} → ${to}</h4>
+                            <div class="route">${fromApt.name} → ${toApt.name}</div>
+                            <strong>${count} flights</strong>
+                        </div>
+                    `);
+
+                    routeLayers.push(line);
+                }
+            });
+        }
+
+        function filterFlights() {
+            const searchValue = document.getElementById('searchInput').value.trim();
+            if (!searchValue) {
+                resetFilter();
+                return;
+            }
+
+            // Check if it is a route (contains -)
+            if (searchValue.includes('-') && allRouteCounts[searchValue]) {
+                selectRoute(searchValue);
+            } else {
+                // Search as passenger or airport
+                currentFilter = searchValue;
+                renderFlightsList(flightsData);
+                showResetButton();
+            }
+        }
+
+        // Init
+        initMap();
+        loadFlights().then(() => {
+            // Auto-filter by passenger from URL parameter (?passenger=NAME)
+            const urlParams = new URLSearchParams(window.location.search);
+            const passengerParam = urlParams.get('passenger');
+            if (passengerParam && flightsData.length > 0) {
+                filterByPassenger(passengerParam);
+            }
+        });
+    </script>
+</body>
+</html>

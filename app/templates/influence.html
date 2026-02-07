@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influence Network Analysis - Epstein Files</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: #12122a;
+            --bg-input: #1a1a3a;
+            --accent: #00d4ff;
+            --accent-red: #ff4757;
+            --accent-green: #2ed573;
+            --accent-yellow: #ffa502;
+            --accent-purple: #a855f7;
+            --text: #e0e0e0;
+            --text-muted: #888;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a1a 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i { font-size: 24px; color: var(--accent-red); }
+        .logo h1 { font-size: 20px; }
+        .logo span { font-size: 12px; color: var(--text-muted); margin-left: 10px; }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 14px;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .main {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            background: var(--bg-card);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+        }
+
+        .panel {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .panel h3 {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .org-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .org-checkbox:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .org-checkbox input {
+            margin-right: 12px;
+            accent-color: var(--accent);
+        }
+
+        .org-checkbox .org-info {
+            flex: 1;
+        }
+
+        .org-checkbox .org-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .org-checkbox .org-type {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .depth-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .depth-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .depth-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-red), #cc2244);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: var(--bg-input);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tab {
+            padding: 15px 25px;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { color: var(--text); }
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow: auto;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Graph */
+        #influenceGraph {
+            width: 100%;
+            height: calc(100vh - 120px);
+            min-height: 600px;
+            background: var(--bg-dark);
+        }
+
+        /* Layered schema */
+        .schema-container {
+            padding: 30px;
+        }
+
+        .schema-level {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .schema-level.level-1 { border-left-color: var(--accent-red); }
+        .schema-level.level-2 { border-left-color: var(--accent-yellow); }
+        .schema-level.level-3 { border-left-color: var(--accent-green); }
+
+        .schema-level h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .schema-level h4 .level-num {
+            background: var(--bg-input);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .level-1 .level-num { background: var(--accent-red); color: #fff; }
+        .level-2 .level-num { background: var(--accent-yellow); color: #000; }
+        .level-3 .level-num { background: var(--accent-green); color: #000; }
+
+        .entities-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .entity-card {
+            background: var(--bg-input);
+            padding: 12px 16px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+
+        .entity-card .name { font-weight: 600; font-size: 14px; }
+        .entity-card .mentions {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .flow-arrow {
+            text-align: center;
+            padding: 10px;
+            color: var(--accent);
+            font-size: 24px;
+        }
+
+        /* Report */
+        .report-container {
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .report-container h1 { font-size: 28px; margin-bottom: 10px; }
+        .report-container h2 {
+            font-size: 20px;
+            color: var(--accent);
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .report-container h3 { font-size: 16px; margin: 20px 0 10px; }
+        .report-container p { line-height: 1.7; margin-bottom: 15px; }
+        .report-container ul, .report-container ol { margin-left: 20px; margin-bottom: 15px; }
+        .report-container li { margin-bottom: 8px; line-height: 1.6; }
+        .report-container blockquote {
+            border-left: 3px solid var(--accent);
+            padding-left: 15px;
+            margin: 15px 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .report-container code {
+            background: var(--bg-input);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .report-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .report-container th, .report-container td {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+        .report-container th {
+            background: var(--bg-input);
+        }
+
+        /* Key documents */
+        .doc-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .doc-card .category {
+            font-size: 11px;
+            color: var(--accent-purple);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .doc-card .title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .doc-card .snippet {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            background: var(--bg-input);
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .doc-card a {
+            color: var(--accent);
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden { display: none; }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--bg-input);
+            border-top-color: var(--accent-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-overlay .status {
+            margin-top: 20px;
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .loading-overlay .substatus {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Progress */
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-red), var(--accent));
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        /* Export buttons */
+        .export-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .export-btns .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <script src="/static/sidebar.js"></script>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-sitemap"></i>
+            <h1>Influence Network</h1>
+            <span>Analysis of private connections → international organizations</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <aside class="sidebar">
+            <div class="panel">
+                <h3><i class="fas fa-building"></i> Target Organizations</h3>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="WHO" checked>
+                    <div class="org-info">
+                        <div class="org-name">WHO</div>
+                        <div class="org-type">World Health Organization</div>
+                    </div>
+                </label>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="ICRC" checked>
+                    <div class="org-info">
+                        <div class="org-name">ICRC</div>
+                        <div class="org-type">International Red Cross</div>
+                    </div>
+                </label>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="World Bank" checked>
+                    <div class="org-info">
+                        <div class="org-name">World Bank</div>
+                        <div class="org-type">World Bank</div>
+                    </div>
+                </label>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="Gates Foundation" checked>
+                    <div class="org-info">
+                        <div class="org-name">Gates Foundation</div>
+                        <div class="org-type">Private Foundation</div>
+                    </div>
+                </label>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="IPI" checked>
+                    <div class="org-info">
+                        <div class="org-name">IPI</div>
+                        <div class="org-type">International Peace Institute</div>
+                    </div>
+                </label>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="UN">
+                    <div class="org-info">
+                        <div class="org-name">UN</div>
+                        <div class="org-type">United Nations</div>
+                    </div>
+                </label>
+
+                <label class="org-checkbox">
+                    <input type="checkbox" name="org" value="GAVI">
+                    <div class="org-info">
+                        <div class="org-name">GAVI</div>
+                        <div class="org-type">Vaccine Alliance</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="panel">
+                <h3><i class="fas fa-sliders-h"></i> Analysis Depth</h3>
+                <div class="depth-selector">
+                    <button class="depth-btn" data-depth="small">Quick</button>
+                    <button class="depth-btn active" data-depth="medium">Medium</button>
+                    <button class="depth-btn" data-depth="full">Full</button>
+                </div>
+
+                <button class="btn btn-primary" id="startAnalysis">
+                    <i class="fas fa-search-dollar"></i> Start Analysis
+                </button>
+            </div>
+
+            <div class="panel">
+                <h3><i class="fas fa-history"></i> Saved Analyses</h3>
+                <div id="savedAnalyses">
+                    <p style="color: var(--text-muted); font-size: 12px;">No saved analyses</p>
+                </div>
+            </div>
+
+            <div class="panel" id="statsPanel" style="display: none;">
+                <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="value" id="statOrgs">0</div>
+                        <div class="label">Organizations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="statDocs">0</div>
+                        <div class="label">Documents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="statInterm">0</div>
+                        <div class="label">Intermediaries</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="statConns">0</div>
+                        <div class="label">Connections</div>
+                    </div>
+                </div>
+
+                <div class="export-btns">
+                    <button class="btn btn-secondary" onclick="exportMarkdown()">
+                        <i class="fas fa-file-export"></i> Export MD
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportJSON()">
+                        <i class="fas fa-code"></i> JSON
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="content-area">
+            <div class="tabs">
+                <div class="tab active" data-tab="schema">
+                    <i class="fas fa-layer-group"></i> Schema
+                </div>
+                <div class="tab" data-tab="graph">
+                    <i class="fas fa-project-diagram"></i> Graph
+                </div>
+                <div class="tab" data-tab="documents">
+                    <i class="fas fa-file-alt"></i> Key Documents
+                </div>
+                <div class="tab" data-tab="report">
+                    <i class="fas fa-file-contract"></i> Report AI
+                </div>
+            </div>
+
+            <div class="tab-content active" id="tab-schema">
+                <div class="empty-state" id="schemaEmpty">
+                    <i class="fas fa-sitemap"></i>
+                    <h3>Influence Schema</h3>
+                    <p>Select organizations and start the analysis<br>to visualize the connections schema</p>
+                </div>
+                <div class="schema-container" id="schemaContent" style="display: none;"></div>
+            </div>
+
+            <div class="tab-content" id="tab-graph">
+                <div id="influenceGraph"></div>
+            </div>
+
+            <div class="tab-content" id="tab-documents">
+                <div class="schema-container" id="documentsContent">
+                    <div class="empty-state">
+                        <i class="fas fa-file-search"></i>
+                        <h3>Key Documents</h3>
+                        <p>The most relevant documents will appear here after the analysis</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-report">
+                <div class="report-container" id="reportContent">
+                    <div class="empty-state">
+                        <i class="fas fa-brain"></i>
+                        <h3>Report AI</h3>
+                        <p>The AI analysis will generate a detailed report<br>with interpretive theory of the data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="status" id="loadingStatus">Initializing analysis...</div>
+        <div class="substatus" id="loadingSubstatus"></div>
+        <div class="progress-bar">
+            <div class="fill" id="progressFill"></div>
+        </div>
+        <button onclick="stopAnalysis()" style="margin-top: 20px; padding: 10px 20px; background: var(--accent-red); border: none; border-radius: 6px; color: white; cursor: pointer;">
+            <i class="fas fa-stop"></i> Cancel
+        </button>
+    </div>
+
+    <script>
+        let analysisData = null;
+        let network = null;
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+
+                if (tab.dataset.tab === 'graph' && analysisData) {
+                    // Delay to ensure the container is visible
+                    setTimeout(() => {
+                        renderGraph();
+                        // Force resize after render
+                        if (network) {
+                            network.fit();
+                        }
+                    }, 100);
+                }
+            });
+        });
+
+        // Depth selector
+        document.querySelectorAll('.depth-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Start analysis
+        document.getElementById('startAnalysis').addEventListener('click', startAnalysis);
+
+        let currentJobId = null;
+        let pollInterval = null;
+
+        async function startAnalysis() {
+            const selectedOrgs = Array.from(document.querySelectorAll('input[name="org"]:checked'))
+                .map(cb => cb.value);
+
+            if (selectedOrgs.length === 0) {
+                alert('Select at least one organization');
+                return;
+            }
+
+            const depth = document.querySelector('.depth-btn.active').dataset.depth;
+
+            showLoading('Starting background analysis...');
+            updateProgress(5, 'Sending request...');
+
+            try {
+                // Start background job
+                const response = await fetch('/api/influence-network', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target_orgs: selectedOrgs,
+                        depth: depth
+                    })
+                });
+
+                const data = await response.json();
+                console.log('[Analysis] Job started:', data);
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                currentJobId = data.job_id;
+                updateProgress(10, 'Analysis started! Polling status...');
+
+                // Start polling
+                pollInterval = setInterval(() => pollJobStatus(selectedOrgs, depth), 2000);
+
+            } catch (error) {
+                console.error('[Analysis] Error starting:', error);
+                alert('Start error: ' + error.message);
+                hideLoading();
+            }
+        }
+
+        async function pollJobStatus(selectedOrgs, depth) {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/api/influence-network/status/${currentJobId}`);
+                const data = await response.json();
+
+                console.log('[Poll] Status:', data.status, data.progress);
+                updateProgress(0, data.progress); // Progress from API
+
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+
+                    updateProgress(100, 'Completed!');
+                    analysisData = data.result;
+
+                    // Save to localStorage
+                    saveAnalysis(selectedOrgs, depth, data.result);
+
+                    renderResults(data.result);
+                    hideLoading();
+                    currentJobId = null;
+
+                } else if (data.status === 'error') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+
+                    alert('Analysis error: ' + data.error);
+                    hideLoading();
+                    currentJobId = null;
+                }
+                // If 'running' or 'pending', continue polling
+
+            } catch (error) {
+                console.error('[Poll] Error:', error);
+                // Don't stop polling for temporary errors
+            }
+        }
+
+        function stopAnalysis() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            currentJobId = null;
+            hideLoading();
+        }
+
+        // === SEARCH SAVING (server-side disk storage) ===
+
+        async function loadSavedList() {
+            const container = document.getElementById('savedAnalyses');
+            if (!container) return;
+
+            try {
+                const response = await fetch('/api/influence-network/saved');
+                const data = await response.json();
+                const saved = data.analyses || [];
+
+                if (saved.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px;">No saved analyses</p>';
+                    return;
+                }
+
+                container.innerHTML = saved.map(a => `
+                    <div class="saved-item" style="background: var(--bg-input); padding: 10px; border-radius: 6px; margin-bottom: 8px;">
+                        <div onclick="loadSavedAnalysis('${a.filename}')" style="cursor: pointer; font-size: 13px;">
+                            <strong>${a.target_orgs.join(', ')}</strong>
+                            <div style="font-size: 11px; color: var(--text-muted);">
+                                ${new Date(a.date).toLocaleDateString('en-US', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'})}
+                            </div>
+                            <div style="font-size: 11px; color: var(--accent);">
+                                ${a.stats.connections || 0} connections · ${a.stats.intermediaries || 0} intermediaries
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteSavedAnalysis('${a.filename}')"
+                                style="background: none; border: none; color: var(--accent-red); cursor: pointer; font-size: 11px; margin-top: 5px;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('[Saved] Error loading:', error);
+                container.innerHTML = '<p style="color: var(--accent-red); font-size: 12px;">Loading error</p>';
+            }
+        }
+
+        async function loadSavedAnalysis(filename) {
+            showLoading('Loading saved analysis...');
+            updateProgress(50, filename);
+
+            try {
+                const response = await fetch(`/api/influence-network/saved/${filename}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                analysisData = data.result;
+                renderResults(data.result);
+                updateProgress(100, 'Loaded!');
+
+            } catch (error) {
+                console.error('[Load] Error:', error);
+                alert('Loading error: ' + error.message);
+            }
+
+            hideLoading();
+        }
+
+        async function deleteSavedAnalysis(filename) {
+            if (!confirm('Delete this analysis?')) return;
+
+            try {
+                await fetch(`/api/influence-network/saved/${filename}`, { method: 'DELETE' });
+                loadSavedList();
+            } catch (error) {
+                console.error('[Delete] Error:', error);
+                alert('Deletion error: ' + error.message);
+            }
+        }
+
+        // Dummy for compatibility (saving is now automatic server-side)
+        function saveAnalysis(orgs, depth, data) {
+            // Saving is already done by the server
+            loadSavedList(); // Refresh the list
+        }
+
+        // Load saved list on startup
+        document.addEventListener('DOMContentLoaded', loadSavedList);
+
+        function showLoading(status) {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingStatus').textContent = status;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function updateProgress(percent, substatus = '') {
+            document.getElementById('progressFill').style.width = percent + '%';
+            if (substatus) {
+                document.getElementById('loadingSubstatus').textContent = substatus;
+            }
+        }
+
+        function renderResults(data) {
+            console.log('[Render] Starting render with data:', data);
+
+            // Stats
+            document.getElementById('statsPanel').style.display = 'block';
+            document.getElementById('statOrgs').textContent = Object.keys(data.target_organizations || {}).length;
+
+            let totalDocs = 0;
+            Object.values(data.target_organizations || {}).forEach(org => {
+                totalDocs += (org.documents || []).length;
+            });
+            document.getElementById('statDocs').textContent = totalDocs;
+            document.getElementById('statInterm').textContent = Object.keys(data.intermediaries || {}).length;
+            document.getElementById('statConns').textContent = (data.connections || []).length;
+
+            console.log('[Render] Stats done, rendering schema...');
+
+            // Schema
+            renderSchema(data);
+            console.log('[Render] Schema done, rendering documents...');
+
+            // Documents
+            renderDocuments(data);
+            console.log('[Render] Documents done, rendering report...');
+
+            // Report
+            renderReport(data);
+            console.log('[Render] Report done, rendering graph...');
+
+            // Render graph immediately too
+            renderGraph();
+            console.log('[Render] All done!');
+        }
+
+        function renderSchema(data) {
+            document.getElementById('schemaEmpty').style.display = 'none';
+            const container = document.getElementById('schemaContent');
+            container.style.display = 'block';
+
+            const schema = data.influence_schema || {};
+            const levels = schema.levels || [];
+
+            let html = '<h2 style="margin-bottom: 20px;">3-Level Infiltration Schema</h2>';
+
+            levels.forEach((level, idx) => {
+                const levelClass = `level-${idx + 1}`;
+                const entities = level.entities || [];
+                const entitiesHtml = entities.length > 0
+                    ? entities.map(e => `
+                        <div class="entity-card">
+                            <div class="name">${e.name}</div>
+                            <div class="mentions">${e.mentions || 0} mentions</div>
+                            ${e.documents ? `<div class="mentions">${e.documents} documents</div>` : ''}
+                            ${e.connected_orgs && e.connected_orgs.length > 0 ? `<div class="mentions" style="color: var(--accent);">→ ${e.connected_orgs.join(', ')}</div>` : ''}
+                        </div>
+                    `).join('')
+                    : '<p style="color: var(--text-muted); font-style: italic;">No entities found at this level</p>';
+
+                html += `
+                    <div class="schema-level ${levelClass}">
+                        <h4>
+                            <span class="level-num">${idx + 1}</span>
+                            ${level.name}
+                            <span style="margin-left: auto; font-size: 12px; color: var(--text-muted);">${entities.length} entities</span>
+                        </h4>
+                        <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 13px;">
+                            ${level.description}
+                        </p>
+                        <div class="entities-grid">
+                            ${entitiesHtml}
+                        </div>
+                    </div>
+                `;
+
+                if (idx < levels.length - 1) {
+                    html += '<div class="flow-arrow"><i class="fas fa-arrow-down"></i></div>';
+                }
+            });
+
+            // Connections summary
+            if (data.connections && data.connections.length > 0) {
+                html += `
+                    <div class="schema-level" style="border-left-color: var(--accent-purple); margin-top: 30px;">
+                        <h4>
+                            <span class="level-num" style="background: var(--accent-purple);"><i class="fas fa-link"></i></span>
+                            Documented Connections
+                        </h4>
+                        <div class="entities-grid">
+                            ${data.connections.slice(0, 10).map(c => `
+                                <div class="entity-card">
+                                    <div class="name">${c.from} → ${c.to}</div>
+                                    <div class="mentions">${c.documents} documents</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderGraph() {
+            if (!analysisData) {
+                console.log('[Graph] No data, skipping');
+                return;
+            }
+
+            console.log('[Graph] Starting render...');
+            console.log('[Graph] Schema:', analysisData.influence_schema);
+            console.log('[Graph] Intermediaries:', Object.keys(analysisData.intermediaries || {}));
+            console.log('[Graph] Connections:', analysisData.connections);
+
+            const container = document.getElementById('influenceGraph');
+
+            // Clean container
+            container.innerHTML = '';
+            const nodes = [];
+            const edges = [];
+            const nodeIds = new Set();
+
+            // Colors by type
+            const colors = {
+                'financier': '#ff4757',
+                'bridge': '#ffa502',
+                'target': '#2ed573',
+                'intermediary': '#a855f7'
+            };
+
+            // Helper function to add a node
+            function addNode(name, type, mentions, level) {
+                if (!nodeIds.has(name)) {
+                    nodeIds.add(name);
+                    nodes.push({
+                        id: name,
+                        label: name,
+                        color: {
+                            background: colors[type] || colors.intermediary,
+                            border: colors[type] || colors.intermediary
+                        },
+                        size: 15 + (mentions ? Math.log10(mentions + 1) * 10 : 5),
+                        level: level,
+                        title: `${name}\nMentions: ${mentions || 'N/A'}`
+                    });
+                }
+            }
+
+            // 1. Add nodes from schema levels
+            const schema = analysisData.influence_schema || {};
+            (schema.levels || []).forEach((level, idx) => {
+                const type = idx === 0 ? 'financier' : (idx === 1 ? 'bridge' : 'target');
+                (level.entities || []).forEach(e => {
+                    addNode(e.name, type, e.mentions, idx);
+                });
+            });
+
+            // 2. Add intermediaries (in case not in schema)
+            Object.entries(analysisData.intermediaries || {}).forEach(([name, data]) => {
+                addNode(name, 'intermediary', data.total_mentions, 0);
+            });
+
+            // 3. Add all target organizations (in case not in schema)
+            Object.entries(analysisData.target_organizations || {}).forEach(([key, orgData]) => {
+                const isBridge = ['IPI', 'Gates Foundation'].includes(key);
+                addNode(orgData.name, isBridge ? 'bridge' : 'target', orgData.total_mentions, isBridge ? 1 : 2);
+            });
+
+            // 4. Add edges from connections - also ensure nodes exist
+            (analysisData.connections || []).forEach(conn => {
+                // Ensure source node exists
+                if (!nodeIds.has(conn.from)) {
+                    addNode(conn.from, 'intermediary', conn.documents || 1, 0);
+                }
+                // Ensure target node exists
+                if (!nodeIds.has(conn.to)) {
+                    addNode(conn.to, 'target', conn.documents || 1, 2);
+                }
+                edges.push({
+                    from: conn.from,
+                    to: conn.to,
+                    value: conn.documents || 1,
+                    title: `${conn.documents || 1} documents`,
+                    arrows: 'to'
+                });
+            });
+
+            // 5. Add edges from intermediaries' connected_orgs
+            Object.entries(analysisData.intermediaries || {}).forEach(([name, data]) => {
+                (data.connected_orgs || []).forEach(conn => {
+                    const orgData = analysisData.target_organizations[conn.org];
+                    if (orgData) {
+                        // Ensure org node exists
+                        if (!nodeIds.has(orgData.name)) {
+                            const isBridge = ['IPI', 'Gates Foundation'].includes(conn.org);
+                            addNode(orgData.name, isBridge ? 'bridge' : 'target', orgData.total_mentions, isBridge ? 1 : 2);
+                        }
+                        edges.push({
+                            from: name,
+                            to: orgData.name,
+                            value: conn.joint_mentions || 1,
+                            title: `${conn.joint_mentions || 1} joint documents`,
+                            arrows: 'to'
+                        });
+                    }
+                });
+            });
+
+            // 6. Add edges from schema flows
+            (schema.flows || []).forEach(flow => {
+                // Check if edge already exists
+                const exists = edges.some(e => e.from === flow.from && e.to === flow.to);
+                if (!exists && nodeIds.has(flow.from) && nodeIds.has(flow.to)) {
+                    edges.push({
+                        from: flow.from,
+                        to: flow.to,
+                        value: flow.strength || 1,
+                        title: `${flow.strength || 1} documents`,
+                        arrows: 'to'
+                    });
+                }
+            });
+
+            console.log('[Graph] Nodes:', nodes.length, 'Edges:', edges.length);
+
+            if (nodes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-project-diagram"></i>
+                        <h3>No data for the graph</h3>
+                        <p>The analysis found no displayable connections</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    font: { color: '#e0e0e0', size: 12 },
+                    borderWidth: 2
+                },
+                edges: {
+                    color: { color: 'rgba(255,255,255,0.3)', highlight: '#00d4ff' },
+                    smooth: { type: 'curvedCW', roundness: 0.2 },
+                    width: 2
+                },
+                physics: {
+                    hierarchicalRepulsion: {
+                        nodeDistance: 200,
+                        springLength: 150
+                    }
+                },
+                layout: {
+                    hierarchical: {
+                        enabled: true,
+                        direction: 'UD',
+                        sortMethod: 'directed',
+                        levelSeparation: 180,
+                        nodeSpacing: 150
+                    }
+                }
+            };
+
+            try {
+                network = new vis.Network(container,
+                    { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) },
+                    options
+                );
+                console.log('[Graph] Network created successfully');
+            } catch (err) {
+                console.error('[Graph] Error creating network:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Graph rendering error</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderDocuments(data) {
+            const container = document.getElementById('documentsContent');
+            const docs = data.key_documents || [];
+
+            if (docs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-search"></i>
+                        <h3>No key documents found</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<h2 style="margin-bottom: 20px;">Key Documents Identified</h2>';
+
+            docs.forEach(doc => {
+                const snippet = (doc.snippets && doc.snippets[0])
+                    ? doc.snippets[0].replace(/<em>/g, '<strong>').replace(/<\/em>/g, '</strong>')
+                    : 'No excerpt available';
+
+                html += `
+                    <div class="doc-card">
+                        <div class="category">${doc.category}</div>
+                        <div class="title">${doc.title}</div>
+                        <div class="snippet">${snippet}</div>
+                        <a href="${doc.url}" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Open document
+                        </a>
+                    </div>
+                `;
+            });
+
+            // Financial flows
+            if (data.financial_flows && data.financial_flows.length > 0) {
+                html += '<h2 style="margin: 30px 0 20px;">Financial Flows Identified</h2>';
+                data.financial_flows.forEach(flow => {
+                    const snippet = (flow.snippets && flow.snippets[0])
+                        ? flow.snippets[0].replace(/<em>/g, '<strong>').replace(/<\/em>/g, '</strong>')
+                        : '';
+                    html += `
+                        <div class="doc-card" style="border-left-color: var(--accent-yellow);">
+                            <div class="category">${flow.type} - ${flow.organization}</div>
+                            <div class="title">${flow.document}</div>
+                            ${snippet ? `<div class="snippet">${snippet}</div>` : ''}
+                            <a href="${flow.url}" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Open document
+                            </a>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderReport(data) {
+            const container = document.getElementById('reportContent');
+
+            if (!data.summary) {
+                // Check if there is useful data to show anyway
+                let statsHtml = '';
+                const stats = {
+                    orgs: Object.keys(data.target_organizations || {}).length,
+                    intermediaries: Object.keys(data.intermediaries || {}).length,
+                    connections: (data.connections || []).length,
+                    keyDocs: (data.key_documents || []).length
+                };
+
+                if (stats.orgs > 0 || stats.intermediaries > 0) {
+                    statsHtml = `
+                        <div style="margin-top: 20px; padding: 15px; background: var(--bg-input); border-radius: 8px;">
+                            <h4 style="margin-bottom: 10px;">Data collected from analysis:</h4>
+                            <ul style="color: var(--text-muted);">
+                                <li>${stats.orgs} organizations analyzed</li>
+                                <li>${stats.intermediaries} intermediaries found</li>
+                                <li>${stats.connections} documented connections</li>
+                                <li>${stats.keyDocs} key documents identified</li>
+                            </ul>
+                            <p style="margin-top: 10px; font-size: 12px; color: var(--accent-yellow);">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Configure the Claude API key in the database to generate the AI report
+                            </p>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-brain"></i>
+                        <h3>AI Report not available</h3>
+                        <p>The Claude API is not configured or is unreachable.<br>
+                        Check the API key in the MongoDB database (SnareSetting.api_keys)</p>
+                        ${statsHtml}
+                    </div>
+                `;
+                return;
+            }
+
+            // Parse markdown
+            let html = marked.parse(data.summary);
+
+            // Extract documents to analyze in depth from the report
+            const docPattern = /EFTA\d+\.pdf/g;
+            const foundDocs = data.summary.match(docPattern) || [];
+            const uniqueDocs = [...new Set(foundDocs)];
+
+            // Save to global variable for the button
+            window.pendingDeepDocs = uniqueDocs;
+
+            if (uniqueDocs.length > 0) {
+                html += `
+                    <div style="margin-top: 30px; padding: 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--accent-purple);">
+                        <h3 style="color: var(--accent-purple); margin-bottom: 15px;">
+                            <i class="fas fa-search-plus"></i> Automatic Deep Analysis
+                        </h3>
+                        <p style="margin-bottom: 15px; color: var(--text-muted);">
+                            Found ${uniqueDocs.length} documents to analyze in detail:
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                            ${uniqueDocs.map(d => `<span style="background: var(--bg-input); padding: 5px 10px; border-radius: 4px; font-size: 12px;">${d}</span>`).join('')}
+                        </div>
+                        <button id="deepAnalysisBtn" class="btn btn-primary" style="width: auto; padding: 12px 24px;">
+                            <i class="fas fa-microscope"></i> Analyze Documents in Depth
+                        </button>
+                        <div id="deepAnalysisResults" style="margin-top: 20px;"></div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // Add event listener after inserting the HTML
+            const deepBtn = document.getElementById('deepAnalysisBtn');
+            if (deepBtn) {
+                deepBtn.addEventListener('click', () => {
+                    console.log('[Deep] Starting with docs:', window.pendingDeepDocs);
+                    startDeepAnalysis(window.pendingDeepDocs);
+                });
+            }
+        }
+
+        // === DEEP ANALYSIS ===
+        let deepAnalysisJobId = null;
+
+        async function startDeepAnalysis(docIds) {
+            const resultsContainer = document.getElementById('deepAnalysisResults');
+            resultsContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <div class="spinner" style="margin: 0 auto 15px;"></div>
+                    <div id="deepProgress">Starting deep analysis...</div>
+                </div>
+            `;
+
+            try {
+                // Prepare context from current analysis
+                const context = `Target organizations: ${Object.keys(analysisData.target_organizations || {}).join(', ')}
+Identified intermediaries: ${Object.keys(analysisData.intermediaries || {}).join(', ')}
+Connections found: ${(analysisData.connections || []).length}`;
+
+                const response = await fetch('/api/influence-network/deep-analysis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ doc_ids: docIds, context: context })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                deepAnalysisJobId = data.job_id;
+
+                // Polling
+                const pollDeep = setInterval(async () => {
+                    const statusRes = await fetch(`/api/influence-network/deep-analysis/${deepAnalysisJobId}`);
+                    const status = await statusRes.json();
+
+                    document.getElementById('deepProgress').textContent = status.progress;
+
+                    if (status.status === 'completed') {
+                        clearInterval(pollDeep);
+                        renderDeepResults(status.result);
+                    } else if (status.status === 'error') {
+                        clearInterval(pollDeep);
+                        resultsContainer.innerHTML = `<p style="color: var(--accent-red);">Error: ${status.error}</p>`;
+                    }
+                }, 3000);
+
+            } catch (error) {
+                resultsContainer.innerHTML = `<p style="color: var(--accent-red);">Error: ${error.message}</p>`;
+            }
+        }
+
+        function renderDeepResults(results) {
+            const container = document.getElementById('deepAnalysisResults');
+
+            let html = '<h4 style="margin-bottom: 15px; color: var(--accent-green);"><i class="fas fa-check-circle"></i> Analysis Completed</h4>';
+
+            results.forEach(r => {
+                if (r.error) {
+                    html += `
+                        <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent-red);">
+                            <strong>${r.doc_id}</strong>
+                            <p style="color: var(--accent-red);">${r.error}</p>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent-green);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <strong>${r.doc_id}</strong>
+                                <a href="${r.url}" target="_blank" style="color: var(--accent); font-size: 12px;">
+                                    <i class="fas fa-external-link-alt"></i> Open PDF
+                                </a>
+                            </div>
+                            <div class="deep-analysis-content" style="font-size: 14px; line-height: 1.6;">
+                                ${marked.parse(r.analysis)}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function exportMarkdown() {
+            if (!analysisData) return;
+
+            fetch('/api/influence-network/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(analysisData)
+            })
+            .then(r => r.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'influence_network_analysis.md';
+                a.click();
+            });
+        }
+
+        function exportJSON() {
+            if (!analysisData) return;
+
+            const blob = new Blob([JSON.stringify(analysisData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'influence_network_analysis.json';
+            a.click();
+        }
+    </script>
+</body>
+</html>
