@@ -4,6 +4,8 @@ Parrhesepstein — Entry point (porta 5001)
 import sys
 import os
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 # Ensure the parent directory is in sys.path so 'app' package is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
