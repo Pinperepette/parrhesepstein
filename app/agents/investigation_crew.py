@@ -76,8 +76,8 @@ def parse_llm_json(text, fallback=None):
 class InvestigationCrew:
     """Team di agenti investigativi"""
 
-    def __init__(self, api_key, progress_callback=None, model="claude-sonnet-4-20250514", lang_instruction=""):
-        self.client = Anthropic(api_key=api_key)
+    def __init__(self, api_key, progress_callback=None, model="claude-sonnet-4-20250514", lang_instruction="", base_url=None):
+        self.client = Anthropic(api_key=api_key, base_url=base_url) if base_url else Anthropic(api_key=api_key)
         self.progress_callback = progress_callback or (lambda x: print(f"[CREW] {x}"))
         self.model = model
         self.lang_instruction = lang_instruction
@@ -1102,16 +1102,16 @@ Rispondi in formato JSON:
 
 
 def run_investigation(objective, api_key, progress_callback=None, known_people=None,
-                      model="claude-sonnet-4-20250514", lang_instruction=""):
+                      model="claude-sonnet-4-20250514", lang_instruction="", base_url=None):
     """Funzione principale per eseguire un'investigazione"""
-    crew = InvestigationCrew(api_key, progress_callback, model=model, lang_instruction=lang_instruction)
+    crew = InvestigationCrew(api_key, progress_callback, model=model, lang_instruction=lang_instruction, base_url=base_url)
     return crew.investigate(objective, known_people=known_people)
 
 
 def run_investigation_with_context(objective, existing_context, api_key, progress_callback=None, known_people=None,
-                                   model="claude-sonnet-4-20250514", lang_instruction=""):
+                                   model="claude-sonnet-4-20250514", lang_instruction="", base_url=None):
     """Esegue un'investigazione con contesto da investigazione precedente"""
-    crew = InvestigationCrew(api_key, progress_callback, model=model, lang_instruction=lang_instruction)
+    crew = InvestigationCrew(api_key, progress_callback, model=model, lang_instruction=lang_instruction, base_url=base_url)
     return crew.investigate_with_context(objective, existing_context, known_people=known_people)
 
 

@@ -7,7 +7,7 @@ import uuid
 import threading
 from datetime import datetime
 from flask import Blueprint, jsonify, request, Response
-from app.services.claude import get_anthropic_client, get_claude_api_key, call_claude_with_retry
+from app.services.claude import get_anthropic_client, get_claude_api_key, get_anthropic_base_url, call_claude_with_retry
 from app.services.settings import get_model, get_language_instruction
 from app.services.people import upsert_people_from_investigation
 from app.services.fact_checker import verify_citations
@@ -55,8 +55,10 @@ def run_investigation_job(job_id, objective):
         except Exception as pe:
             print(f"[INVESTIGATION {job_id[:8]}] Errore caricamento persone note: {pe}", flush=True)
 
+        base_url = get_anthropic_base_url()
         result = run_investigation(objective, api_key, progress_callback, known_people=known_people,
-                                   model=get_model(), lang_instruction=get_language_instruction())
+                                   model=get_model(), lang_instruction=get_language_instruction(),
+                                   base_url=base_url)
 
         if result.get('success'):
             investigation_id = str(uuid.uuid4())
@@ -160,8 +162,10 @@ def run_continuation_job(job_id, investigation_id, new_objective):
         except Exception as pe:
             print(f"[CONTINUATION {job_id[:8]}] Errore caricamento persone note: {pe}", flush=True)
 
+        base_url = get_anthropic_base_url()
         new_result = run_investigation_with_context(new_objective, context, api_key, progress_callback, known_people=known_people,
-                                                    model=get_model(), lang_instruction=get_language_instruction())
+                                                    model=get_model(), lang_instruction=get_language_instruction(),
+                                                    base_url=base_url)
 
         if not new_result.get('success'):
             raise ValueError(new_result.get('error', 'Investigazione fallita'))
@@ -283,8 +287,10 @@ def run_meta_investigation_job(job_id, investigation_ids=None):
 
         progress_callback(f"Analisi di {len(investigations)} investigazioni...")
 
+        base_url = get_anthropic_base_url()
         result = run_meta_investigation(investigations, api_key, progress_callback,
-                                        model=get_model(), lang_instruction=get_language_instruction())
+                                        model=get_model(), lang_instruction=get_language_instruction(),
+                                        base_url=base_url)
 
         if result.get('success'):
             meta_id = str(uuid.uuid4())

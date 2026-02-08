@@ -14,11 +14,22 @@ def get_claude_api_key():
     return None
 
 
+def get_anthropic_base_url():
+    """Recupera il base_url personalizzato dal database (per modelli locali)"""
+    key_data = db_settings["api_keys"].find_one({"service": "claude"})
+    if key_data and key_data.get("base_url"):
+        return key_data["base_url"]
+    return None
+
+
 def get_anthropic_client():
     """Crea il client Anthropic con la chiave dal database"""
     api_key = get_claude_api_key()
     if not api_key:
         raise ValueError("Chiave API Claude non trovata nel database.")
+    base_url = get_anthropic_base_url()
+    if base_url:
+        return Anthropic(api_key=api_key, base_url=base_url)
     return Anthropic(api_key=api_key)
 
 

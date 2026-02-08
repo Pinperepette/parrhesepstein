@@ -234,10 +234,20 @@
             </div>
         </div>
 
+        <!-- local anthropic API Endpoint -->
+        <div class="settings-card">
+            <h3><i class="fas fa-server"></i> API Endpoint</h3>
+            <div class="form-group">
+                <label for="baseUrl">Custom Base URL</label>
+                <input type="text" id="baseUrl" placeholder="http://localhost:8080">
+                <div class="model-description">Leave empty to use the default Anthropic API. Set a URL to use a local or alternative Anthropic-compatible endpoint.</div>
+            </div>
+        </div>
+
         <!-- Model -->
         <div class="settings-card">
             <h3><i class="fas fa-microchip"></i> Claude Model</h3>
-            <div class="form-group">
+            <div class="form-group" id="modelDropdownGroup">
                 <label for="modelSelect">AI Model</label>
                 <select id="modelSelect">
                     <option value="claude-sonnet-4-20250514">Sonnet 4 (Balanced - Default)</option>
@@ -245,6 +255,11 @@
                     <option value="claude-haiku-4-5-20251001">Haiku 4.5 (Fastest)</option>
                 </select>
                 <div class="model-description" id="modelDescription">Balanced between speed and quality. Ideal for most analyses.</div>
+            </div>
+            <div class="form-group" id="customModelGroup" style="display: none;">
+                <label for="customModelInput">Custom Model Name</label>
+                <input type="text" id="customModelInput" placeholder="e.g. my-local-model">
+                <div class="model-description">Enter the model name your local server supports.</div>
             </div>
         </div>
 
@@ -301,6 +316,21 @@
             document.getElementById('modelDescription').textContent = modelDescriptions[this.value] || '';
         });
 
+        function toggleModelInputMode() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const dropdownGroup = document.getElementById('modelDropdownGroup');
+            const customGroup = document.getElementById('customModelGroup');
+            if (baseUrl) {
+                dropdownGroup.style.display = 'none';
+                customGroup.style.display = 'block';
+            } else {
+                dropdownGroup.style.display = 'block';
+                customGroup.style.display = 'none';
+            }
+        }
+
+        document.getElementById('baseUrl').addEventListener('input', toggleModelInputMode);
+
         async function loadSettings() {
             try {
                 const resp = await fetch('/api/settings');
@@ -321,9 +351,17 @@
                     status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Missing';
                 }
 
-                document.getElementById('modelSelect').value = data.model;
-                document.getElementById('modelDescription').textContent = modelDescriptions[data.model] || '';
+                document.getElementById('baseUrl').value = data.base_url || '';
+
+                if (data.base_url) {
+                    document.getElementById('customModelInput').value = data.model;
+                } else {
+                    document.getElementById('modelSelect').value = data.model;
+                    document.getElementById('modelDescription').textContent = modelDescriptions[data.model] || '';
+                }
+
                 document.getElementById('languageSelect').value = data.language;
+                toggleModelInputMode();
             } catch (e) {
                 console.error('Error loading settings:', e);
             }
@@ -336,9 +374,15 @@
             status.className = 'status-message';
             status.style.display = 'none';
 
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const model = baseUrl
+                ? document.getElementById('customModelInput').value.trim()
+                : document.getElementById('modelSelect').value;
+
             const payload = {
-                model: document.getElementById('modelSelect').value,
-                language: document.getElementById('languageSelect').value
+                model: model,
+                language: document.getElementById('languageSelect').value,
+                base_url: baseUrl
             };
 
             const newKey = document.getElementById('newApiKey').value.trim();
